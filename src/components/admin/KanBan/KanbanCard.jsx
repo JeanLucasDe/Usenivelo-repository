@@ -15,7 +15,7 @@ import LimitReachedFullScreen from "../SubmoduleCRUDconfig/templates/LimitReache
 
 
 // --- Componente principal --- //
-export default function KanbanCard({ fields = [], subFields = [], submodule_id , record=[],fetchRecords, onClose, isOpen,page, shared, creating, limiteAtingido , submoduleName,kanban,created_by,position,step_id, handleReloadKanban,onlyView, usuarios,companies}) {
+export default function KanbanCard({ fields = [], subFields = [], submodule_id , record=[],fetchRecords, onClose, isOpen,page, shared, creating, limiteAtingido , submoduleName,kanban,created_by,position,step_id, handleReloadKanban,onlyView, usuarios,companies,canEdit}) {
     const { toast } = useToast();
     const LOCAL_CACHE_KEY = `formulaCache_${submodule_id || "default"}`;
     const ENABLE_KEY = `formulaCacheEnabled_${submodule_id || "default"}`;
@@ -228,17 +228,17 @@ function calculateField(field, recordData) {
     return changed ? init : prev;
   });
   fetchFormConfig()
+  setLoading(false)
   }, []);
   // Recalcula fórmulas dinamicamente e salva valores no cache (fórmulas + subfields)
   useEffect(() => {
     if (!fields?.length || !submodule_id) return;
-
-    
     fetchRelated()
     setLoading(false)
   }, [fields, subFields, submodule_id]);
   useEffect(() => {
       setIsFormValid(checkRequiredFields());
+      setLoading(false)
     }, [formData, fields]);
     useEffect(() => {
     if (!creating && formConfig[0]?.form_type === 'confirmation') {
@@ -252,11 +252,14 @@ function calculateField(field, recordData) {
 
   // Atualiza valor
   const handleChange = (name, value) => {
-    setFormData(prev => {
+  setFormData(prev => {
     const nextFormData = { ...prev, [name]: value };
 
-    // Atualiza previewData com todos os campos atuais
-    const updatedPreview = { ...nextFormData };
+    // Atualiza previewData preservando title/description/etc
+    const updatedPreview = {
+      ...previewData, // mantém title, description, labels etc
+      ...nextFormData // atualiza campos de formulário
+    };
 
     // Recalcula fórmulas automaticamente
     const formulaFields = fields.filter(f => f.field_type === "formula");
@@ -268,6 +271,8 @@ function calculateField(field, recordData) {
     return nextFormData;
   });
 };
+
+
 const [bgColor, setBgColor] = useState("#ffffffff"); // padrão escuro
 const [textColor, setTextColor] = useState("#000000ff");
 const [valueTextArea, setValueTextArea] = useState("");
@@ -556,109 +561,117 @@ const handleDescriptionChange = (value) => {
   const handleSave = async () => {
   setLoading(true);
   try {
-    // previewData já contém todos os valores do formulário
-    const payload = {
-        data: {
-          ...previewData,
-          submodule_id,
-          title: previewData.title, // garante que vem do preview
-          description: previewData.description,
-          labels: cardExtras.labels,
-          checklist: cardExtras.checklist,
-          comments: cardExtras.comments,
-        }
-      };
+    // Monta os dados principais do registro
+    const payloadData = {
+      ...previewData,
+      title: previewData.title,
+      description: previewData.description,
+      labels: cardExtras.labels,
+      checklist: cardExtras.checklist,
+      comments: cardExtras.comments,
+    };
 
+    const payload = { data: payloadData };
 
     if (record?.id) {
-      // Atualiza registro existente
+      // === ATUALIZAR REGISTRO EXISTENTE ===
+      const updateData = {
+        ...payload,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Só adiciona submodule_id se existir
+      if (submodule_id) updateData.submodule_id = submodule_id;
+
       const { error } = await supabase
         .from("submodule_records")
-        .update({
-          ...payload,
-          submodule_id,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq("id", kanban ? record.record_id : record.id);
 
-        if(kanban) {
-          const { error:errKanban } = await supabase
+      if (kanban) {
+        const { error: errKanban } = await supabase
           .from("kanban_cards")
-          .update({
-            ...payload,
-            updated_at: new Date().toISOString(),
-          })
+          .update(updateData)
           .eq("id", record.id);
 
-          if (errKanban) throw errKanban;
-        }
+        if (errKanban) throw errKanban;
+      }
 
       if (error) throw error;
 
       toast({
-        title: 'Registro Atualizado',
-        description: 'Registro atualizado com sucesso!',
+        title: "Registro Atualizado",
+        description: "Registro atualizado com sucesso!",
       });
 
-      setRecordsData(prev => ({ ...prev, data: { ...prev.data, ...previewData } }));
+      setRecordsData((prev) => ({
+        ...prev,
+        data: { ...prev.data, ...previewData },
+      }));
     } else {
-       
-      const {data: record, error } = await supabase
-        .from("submodule_records")
-        .insert([
-          {
-            submodule_id,
-            ...payload,
-            created_at: new Date().toISOString(),
-          },
-        ])
-        .select()
-        .single()
+      // === CRIAR NOVO REGISTRO ===
+      let recordResult = null;
 
-      if (error) throw error;
+      if (submodule_id) {
+        const { data: newRecord, error } = await supabase
+          .from("submodule_records")
+          .insert([
+            {
+              submodule_id, // só envia se existir
+              ...payload,
+              created_at: new Date().toISOString(),
+            },
+          ])
+          .select()
+          .single();
 
-      if(kanban) {
-      const { error } = await supabase
-      .from("kanban_cards")
-      .insert([
-        {
-          step_id,
-          ...payload,
-          created_by,
-          position,
-          record_id: record.id,
-        },
-      ]);
-      
+        if (error) throw error;
+        recordResult = newRecord;
+      }
+      if (kanban) {
+        const { data: dataCard, error } = await supabase
+          .from("kanban_cards")
+          .insert([
+            {
+              step_id,
+              ...payload,
+              created_by,
+              position,
+              record_id: recordResult?.id || null, // null é válido
+            },
+          ])
+          .select();
+
+        if (error) throw error;
+        console.log("Kanban card criado:", dataCard);
       }
 
       toast({
-        title: 'Registro Criado',
-        description: 'Registro salvo com sucesso!',
+        title: "Registro Criado",
+        description: "Registro salvo com sucesso!",
       });
-
     }
 
-    // Atualiza lista local
-    await fetchRecords && fetchRecords();
-    await handleReloadKanban && handleReloadKanban()
+    // Atualiza listas locais
+    await fetchRecords?.();
+    await handleReloadKanban?.();
 
-    // Limpa formulário se não for lembrar
-    
-
-    if (!creating && formConfig[0].form_type === 'confirmation') {
+    // Caso seja form de confirmação
+    if (!creating && formConfig[0]?.form_type === "confirmation") {
       localStorage.setItem(CONFIRMATION_KEY, "true");
       setAlreadySubmitted(true);
     }
-
-
   } catch (err) {
     console.error(err);
-    toast({ title: 'Erro', description: err.message || 'Não foi possível salvar' });
+    toast({
+      title: "Erro",
+      description: err.message || "Não foi possível salvar",
+    });
   } finally {
     setLoading(false);
   }
 };
+
 
   
   const [enabled, setEnabled] = useState(()=>{
@@ -732,7 +745,17 @@ const handleDescriptionChange = (value) => {
             disabled={onlyView}
             onChange={(e) => handleDescriptionChange(e.target.value)}
             placeholder="Adicione uma descrição..."
-            className="w-full min-h-[80px] rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 px-3 py-2 text-sm resize-none focus:ring-2 focus:ring-blue-500"
+            className="w-full min-h-[80px] rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 px-3 py-2 text-sm resize-none focus:ring-2 focus:ring-blue-500  w-full
+            p-3
+            rounded-md
+            font-mono
+            text-sm
+            border
+            border-gray-300
+            focus:outline-none
+            focus:ring-2
+            focus:ring-purple-500
+            resize-y"
             />
         </div>
 
@@ -761,12 +784,12 @@ const handleDescriptionChange = (value) => {
 
       {/* LABELS */}
       <div>
-        <button
+        {canEdit &&<button
           onClick={() => setOpenMenu(openMenu === 'labels' ? null : 'labels')}
           className="w-full flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border rounded-md text-sm"
         >
           <Tag className="w-4 h-4" /> Labels
-        </button>
+        </button>}
 
         {openMenu === 'labels' && (
           <div className="mt-2 p-1 border rounded bg-gray-100 dark:bg-gray-700 space-y-3">
@@ -794,7 +817,7 @@ const handleDescriptionChange = (value) => {
           </div>
         )}
 
-        <div className="flex flex-wrap gap-2 mt-3">
+        {canEdit && <div className="flex flex-wrap gap-2 mt-3">
           {cardExtras.labels.map((label, idx) => (
             <div
               key={idx}
@@ -815,18 +838,18 @@ const handleDescriptionChange = (value) => {
               </button>
             </div>
           ))}
-        </div>
+        </div>}
       </div>
 
       {/* CHECKLIST */}
       <div>
-        <button
+        {canEdit && <button
           onClick={() => setOpenMenu(openMenu === 'checklist' ? null : 'checklist')}
           className="w-full flex items-center justify-between px-3 py-2 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border rounded-md text-sm"
         >
           <span className="flex items-center gap-2"><CheckSquare className="w-4 h-4" /> Checklist</span>
           <span className="text-xs text-gray-500">{cardExtras.checklist.filter(i => i.done).length}/{cardExtras.checklist.length}</span>
-        </button>
+        </button>}
 
         {openMenu === 'checklist' && (
           <div className="mt-2 p-1 border rounded bg-gray-100 dark:bg-gray-700 space-y-2">
@@ -848,7 +871,7 @@ const handleDescriptionChange = (value) => {
           </div>
         )}
 
-        <div className="mt-2 space-y-1">
+        {canEdit &&<div className="mt-2 space-y-1">
           {cardExtras.checklist.map((item, idx) => (
             <div key={idx} className="group flex items-center justify-between p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
               <label className="flex items-center gap-3 cursor-pointer">
@@ -875,7 +898,7 @@ const handleDescriptionChange = (value) => {
               </button>
             </div>
           ))}
-        </div>
+        </div>}
       </div>
 
       {/* COMENTÁRIOS */}
@@ -947,7 +970,7 @@ const handleDescriptionChange = (value) => {
     <div className="border-t p-4 bg-gray-50 dark:bg-gray-800">
       <Button
         onClick={handleSave}
-        disabled={loading || calculating || !isFormValid}
+        disabled={loading || calculating }
         className="w-full bg-blue-600 hover:bg-blue-500 text-white"
       >
         {loading ? "Salvando..." : "Salvar"}

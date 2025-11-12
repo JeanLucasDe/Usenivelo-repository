@@ -9,6 +9,7 @@
   import ShareDropdown from "./ShareDropdown";
   import KanbanCard from "./KanbanCard";
   import { useDashboard } from '@/contexts/DashboardContext';
+import { SplitButton } from "./components/buttonNewCard";
 
   const Modal = ({ isOpen, onClose, title, children, size='4xl' }) => {
     if (!isOpen) return null;
@@ -364,14 +365,16 @@
         setOpenRecordModal(true)
     };
     const selectSubmoduleButton = (sub, step_id) => {
+        if(sub !='main') {
+          const selectFields = fields.filter(field => field.submodule_id === sub.id);
+  
+          // 2. IDs desses fields
+          const fieldIDs = selectFields.map(f => f.id);
+  
+          // 3. Subfields cujo field_id está entre esses IDs
+          const selectSubFields = subFields.filter(sub => fieldIDs.includes(sub.field_id));
+        }
         // 1. Fields desse submódulo
-        const selectFields = fields.filter(field => field.submodule_id === sub.id);
-
-        // 2. IDs desses fields
-        const fieldIDs = selectFields.map(f => f.id);
-
-        // 3. Subfields cujo field_id está entre esses IDs
-        const selectSubFields = subFields.filter(sub => fieldIDs.includes(sub.field_id));
 
         setSubmoduleId(sub.id)
         setStepSelect(step_id)
@@ -465,14 +468,15 @@ function formatISODate(isoString) {
         </option>
       ))}
     </select>
-    <Button
+   {user.id === kanban.user_id &&
+   <Button
     className="ml-2"
     onClick={()=> {
       setOpenCreateStepKanban(true)
     }}
     >
       <PlusCircle className="mr-2"/> Novo
-    </Button>
+    </Button>}
   </div>
 
 
@@ -566,14 +570,25 @@ function formatISODate(isoString) {
                               ))}
                           </div>
                          
-                            <MoreVertical className="w-4 h-4 ml-2 cursor-pointer" 
-                              size="sm"
-                              onClick={() =>
-                                setOpenSubmoduleDropdown(prev =>
-                                  prev === step.id ? null : step.id
-                                )
-                              }
+                            {/**Botão de Novo Card */}
+                           <SplitButton
+                              mainLabel="Criar"
+                              onMainClick={() =>  selectSubmodule('main', step.id)}
+                              options={usuarioComSubmodules?.submodules?.map((sub) => ({
+                                label: sub.name,
+                                submodule: sub,
+                              }))}
+                              onSelect={({ submodule }) => {
+                                // 🔁 exatamente o mesmo comportamento do MoreVertical
+                                setCanEdit(canEdit)
+                                setOpenSubmoduleDropdown(null);
+                                setCurrentStep(step);
+                                setFormData(prev => ({ ...prev, _submodule_id: submodule.submodule_id }));
+                                selectSubmodule(submodule, step.id);
+                                setRecord([]);
+                              }}
                             />
+
                         </div>
 
                         {openSubmoduleDropdown === step.id && (
@@ -678,7 +693,7 @@ function formatISODate(isoString) {
                         className="text-left w-full px-3 py-2 hover:bg-gray-100"
                         onClick={() => {
                           const sub = submodules.find(i => i.id === card?.data?.submodule_id);
-                          selectSubmoduleButton(sub, step.id);
+                          selectSubmoduleButton(sub ? sub : 'main', step.id);
                           setRecord({ data: card?.data, ...card });
                           setOpenMenuCardId(null);
                           setOnlyView(true);
@@ -691,8 +706,9 @@ function formatISODate(isoString) {
                       <button
                         className="text-left w-full px-3 py-2 hover:bg-gray-100"
                         onClick={() => {
-                          const sub = submodules.find(i => i.id === card?.data?.submodule_id);
-                          selectSubmoduleButton(sub, step.id);
+
+                          const sub = submodules.find(i => i.id === card?.data?.submodule_id)
+                          selectSubmoduleButton(sub ? sub : 'main', step.id);
                           setRecord({ data: card?.data, ...card });
                           setCanEdit(true);
                           setOpenMenuCardId(null);

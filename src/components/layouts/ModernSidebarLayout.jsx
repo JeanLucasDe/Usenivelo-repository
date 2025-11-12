@@ -199,7 +199,7 @@ export default function ModernSidebarLayout({
               }`}
             >
               <div className="flex items-center ">
-                {sub.userLogo && <img src={sub.userLogo} className="w-8 h-8 mr-2  border border-gray-300 rounded-full"/>}
+                {sub.userLogo ? <img src={sub.userLogo} className="w-8 h-8 mr-2  border border-gray-300 rounded-full"/>: <UserCircle2 className="mr-3 w-7 h-7"/>}
                 <span className="truncate max-w-[200px]">{sub.label}</span>
 
               </div>
@@ -283,7 +283,7 @@ export default function ModernSidebarLayout({
       }));
       handleCloseSubSidebar()
     },2000)
-    
+
     // 🔹 Feedback e navegação
     toast({ title: "Kanban criado!", description: newKanbanName });
     setOpenCreateKanban(false);
