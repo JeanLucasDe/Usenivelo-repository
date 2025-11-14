@@ -123,7 +123,7 @@ const DashboardLayout = ({ children }) => {
     const IconComponent = Icons[m.icon] || Icons.Zap;
 
     // 1️⃣ Filtra submodules
-    const filteredSubmodules = (m.submodules || []).filter((sub) => {
+    let filteredSubmodules = (m.submodules || []).filter((sub) => {
       // Sempre mostra submódulos que não são Kanban
       if (!sub.kanban) return true;
 

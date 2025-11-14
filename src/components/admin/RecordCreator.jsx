@@ -365,6 +365,18 @@ const renderInput = (field) => {
       </div>
     );
   }
+   if (field.field_type === "relation") {
+    return (
+      <div className="space-y-1">
+        <RecordRelationField 
+        field={field}
+        relatedRecords ={relatedRecords}
+        formData={formData}
+        setFormData={setFormData}
+        />
+      </div>
+    );
+  }
 
   // ========== INPUTS NORMAIS ==========
   return (

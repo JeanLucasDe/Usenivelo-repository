@@ -198,8 +198,9 @@ export default function ModernSidebarLayout({
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
+              
               <div className="flex items-center ">
-                {sub.userLogo ? <img src={sub.userLogo} className="w-8 h-8 mr-2  border border-gray-300 rounded-full"/>: <UserCircle2 className="mr-3 w-7 h-7"/>}
+                {sub.userLogo ? <img src={sub.userLogo} className="w-8 h-8 mr-2  border border-gray-300 rounded-full"/>: sub.kanban && <UserCircle2 className="mr-3 w-7 h-7"/>}
                 <span className="truncate max-w-[200px]">{sub.label}</span>
 
               </div>

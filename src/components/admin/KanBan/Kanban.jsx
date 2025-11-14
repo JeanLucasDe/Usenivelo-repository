@@ -459,6 +459,7 @@ const handleRenameStep = async (stepId) => {
     stepsPerms.some(p => p.step_id === step.id || p.user_id === user?.id)
   );
 
+
   // Se o usuário não possui permissão em nenhuma etapa e não for o dono
   
   if (!stepsDoUsuario.length && user?.id != kanban.user_id) {
@@ -540,35 +541,35 @@ const handleRenameStep = async (stepId) => {
 
             if (!step) return null;
 
-            // Usuário logado e permissões desta etapa
+            // 🟦 Verifica se o usuário logado é o dono do Kanban
+            const isOwner = kanban.user_id === user?.id;
+
+            // 🟦 Permissões do usuário nessa etapa
             const stepUsers = stepsPerms.filter(
               p => p.step_id === step.id && p.user_id === user?.id
             );
 
-            // Se não houver permissão para este usuário, não renderiza a etapa
-            if (stepUsers.length === 0) return null;
+            // 🟥 Se NÃO for dono e NÃO tiver permissão, não renderiza a etapa
+            if (!isOwner && stepUsers.length === 0) return null;
 
-            const canMoveStep = stepUsers[0].move ?? false;
+            // 🟩 Se for o DONO, ele tem todas as permissões automaticamente
+            const canMoveStep   = isOwner ? true : (stepUsers[0]?.move   ?? false);
+            const canCreate     = isOwner ? true : (stepUsers[0]?.create ?? false);
+            const canEdit       = isOwner ? true : (stepUsers[0]?.edit   ?? false);
+            const canView       = isOwner ? true : (stepUsers[0]?.view   ?? false);
+            const canDelete     = isOwner ? true : (stepUsers[0]?.delete ?? false);
 
-            const canCreate = stepUsers[0].create ?? false;
-
-            const canEdit = stepUsers[0].edit ?? false;
-
-            const canView = stepUsers[0].view ?? false;
-
-            const canDelete =  stepUsers[0].delete ?? false;
-
-            // Todos usuários que têm acesso a este step
+            // 🟦 Usuários permitidos no step
             const permittedUsers = stepsPerms
               .filter(p => p.step_id === step.id)
               .map(p => usuarios.find(u => u.id === p.user_id))
               .filter(Boolean);
 
-
-            // Logos das empresas desses usuários
+            // 🟦 Empresas desses usuários
             const permittedCompanies = permittedUsers
               .map(u => companies.find(c => c.id === u.company_id))
               .filter(Boolean);
+
 
 
             return (
