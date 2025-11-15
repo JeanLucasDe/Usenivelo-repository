@@ -63,6 +63,36 @@ export default function KanbanConfig() {
     stepsPerms.some(p => p.step_id === step.id)
   );
 
+// Controle de edição do nome do submodule
+const [editing, setEditing] = useState(false);
+const [editValue, setEditValue] = useState("");
+
+const handleRenameSubmodule = async () => {
+  if (!editValue.trim()) {
+    setEditing(false);
+    return;
+  }
+
+  try {
+    const { error } = await supabase
+      .from("submodules")
+      .update({ name: editValue })
+      .eq("id", kanban.id);
+
+    if (error) throw error;
+
+    // Atualiza o estado local para refletir o novo nome
+    setKanban(prev => ({ ...prev, name: editValue }));
+
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setEditing(false);
+  }
+};
+
+
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -93,6 +123,36 @@ export default function KanbanConfig() {
       >
         <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-200" />
       </button>
+      <div className="mb-5">
+        {/* Título da etapa com edição inline */}
+        <div>
+          {editing ? (
+            <input
+              type="text"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onBlur={handleRenameSubmodule}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleRenameSubmodule();
+                if (e.key === "Escape") setEditing(false);
+              }}
+              autoFocus
+              className="font-bold border-b border-gray-300 focus:outline-none focus:border-purple-500 bg-transparent w-full"
+            />
+          ) : (
+            <h2
+              className="font-bold cursor-pointer hover:underline"
+              onClick={() => {
+                setEditValue(kanban.name);
+                setEditing(true);
+              }}
+            >
+              {kanban.name}
+            </h2>
+          )}
+        </div>
+
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 10 }}

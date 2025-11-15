@@ -178,6 +178,19 @@ function calculateField(field, recordData) {
       }
     }
   }
+  const deleteComment = async (index) => {
+  const updated = cardExtras.comments.filter((_, i) => i !== index);
+
+  // Salva no banco
+  await supabase
+    .from("kanban_cards")
+    .update({ data: { ...cardExtras, comments: updated } })
+    .eq("id", record.id);
+
+  // Atualiza localmente
+  setCardExtras(prev => ({ ...prev, comments: updated }));
+};
+
   const [isFormValid, setIsFormValid] = useState(false);
   const checkRequiredFields = () => {
     if (!fields?.length) return false;
@@ -929,41 +942,61 @@ const handleDescriptionChange = (value) => {
         )}
       </div>
       <div className="mt-3 space-y-2">
-        {cardExtras.comments.map((c, idx) => {
-          const user = usuarios.find(u => u.id === c.id);
-          const name = user?.full_name ?? "Usuário";
-          const company = companies.find((comp)=> comp.id === user.company_id)
-          const avatar = company?.logo;
+  {cardExtras.comments.map((c, idx) => {
+    const userData = usuarios.find(u => u.id === c.id);
+    const name = userData?.full_name ?? "Usuário";
+    const company = companies.find((comp) => comp.id === userData.company_id);
+    const avatar = company?.logo;
+    const isOwner = user?.id === kanban.user_id; // <-- Dono do kanban?
 
-          return (
-            <div key={idx} className="flex gap-2 p-2 border rounded bg-white dark:bg-gray-700">
-              {/* Avatar */}
-              <div className="w-4 h-4 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
-                {avatar ? (
-                  <img src={avatar} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                    {name.slice(0,1).toUpperCase()}
-                  </span>
-                )}
-              </div>
+    return (
+      <div
+        key={idx}
+        className="relative flex gap-2 p-2 border rounded bg-white dark:bg-gray-700"
+      >
+        {/* Botão APAGAR — só aparece para o dono do kanban */}
+        {isOwner && (
+          <button
+            onClick={() => {
+              deleteComment(idx)
+            }}
+            className="absolute top-1 right-1 text-gray-400 hover:text-red-500 text-xs"
+            title="Remover comentário"
+          >
+            🗑️
+          </button>
+        )}
 
-              {/* Texto */}
-              <div className="flex-1">
-                <div className="text-xs  gap-1">
-                  <p className="truncate max-w-[120px] group relative cursor-default">
-                    {name}
-                  </p>
-                  <span className="text-gray-500">{new Date(c.created_at).toLocaleString("pt-BR")}</span>
-                </div>
-                <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap mt-1">
-                  {c.message}
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {/* Avatar */}
+        <div className="w-4 h-4 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
+          {avatar ? (
+            <img src={avatar} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+              {name.slice(0, 1).toUpperCase()}
+            </span>
+          )}
+        </div>
+
+        {/* Texto */}
+        <div className="flex-1">
+          <div className="text-xs gap-1">
+            <p className="truncate max-w-[120px] group relative cursor-default">
+              {name}
+            </p>
+            <span className="text-gray-500">
+              {new Date(c.created_at).toLocaleString("pt-BR")}
+            </span>
+          </div>
+          <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap mt-1">
+            {c.message}
+          </div>
+        </div>
       </div>
+    );
+  })}
+      </div>
+
     </div>
 
     {/* BOTÕES FIXOS */}

@@ -84,8 +84,6 @@
 
   const [openUser, setOpenUser] = useState({});
   const [newPermission, setNewPermission] = useState(false)
-  const [editingTitle, setEditingTitle] = useState(null);
-  const [editTitleValue, setEditTitleValue] = useState("");
 
   const handleRenameStep = async (stepId) => {
   if (!editValue.trim()) {

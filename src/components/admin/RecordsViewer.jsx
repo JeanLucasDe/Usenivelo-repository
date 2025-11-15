@@ -131,218 +131,218 @@ export default function RecordsTable({ records = [], fields = [] , subFields=[] 
 
 
       {/* --- Tabela Responsiva --- */}
-<div className="relative mt-6 w-full overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
-  <table className="min-w-full text-sm text-gray-700">
-    <thead className="bg-gray-50">
-      <tr>
-        
-        {fields
-          .filter(field => field.show_in_table)
-          .map((field) => (
-            <th
-              key={field.id}
-              className="px-4 py-3 text-left text-gray-600 whitespace-nowrap border-b"
-            >
-              {field.name}
-            </th>
-          ))}
-        <th className="px-4 py-3 text-right text-gray-600 whitespace-nowrap border-b">
-          Ações
-        </th>
-      </tr>
-    </thead>
+      <div className="relative mt-6 w-full overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+        <table className="min-w-full text-sm text-gray-700">
+          <thead className="bg-gray-50">
+            <tr>
+              
+              {fields
+                .filter(field => field.show_in_table)
+                .map((field) => (
+                  <th
+                    key={field.id}
+                    className="px-4 py-3 text-left text-gray-600 whitespace-nowrap border-b"
+                  >
+                    {field.name}
+                  </th>
+                ))}
+              <th className="px-4 py-3 text-right text-gray-600 whitespace-nowrap border-b">
+                Ações
+              </th>
+            </tr>
+          </thead>
 
-    <tbody>
-      {filteredRecords.length === 0 ? (
-        <tr>
-          <td
-            colSpan={fields.length + 2}
-            className="text-center text-gray-500 py-8"
-          >
-            Nenhum registro encontrado
-          </td>
-        </tr>
-      ) : (
-        filteredRecords.map((record, idx) => (
-          <tr
-            key={record.id || idx}
-            className="hover:bg-gray-50 transition-colors"
-          >
-           {fields
-  .filter(field => field.show_in_table)
-  .map((field) => {
-    const value = record.data?.[field.name];
+          <tbody>
+            {filteredRecords.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={fields.length + 2}
+                  className="text-center text-gray-500 py-8"
+                >
+                  Nenhum registro encontrado
+                </td>
+              </tr>
+            ) : (
+              filteredRecords.map((record, idx) => (
+                <tr
+                  key={record.id || idx}
+                  className="hover:bg-gray-50 transition-colors"
+                >
+                {fields
+        .filter(field => field.show_in_table)
+        .map((field) => {
+          const value = record.data?.[field.name];
 
-    // 🧩 Caso o campo seja uma relação
-    if (field.field_type === "relation") {
-      const relatedItems = Array.isArray(value) ? value : [];
-      const relConfig = field.relatedConfigs?.[0];
-      let displayValue = "-";
+          // 🧩 Caso o campo seja uma relação
+          if (field.field_type === "relation") {
+            const relatedItems = Array.isArray(value) ? value : [];
+            const relConfig = field.relatedConfigs?.[0];
+            let displayValue = "-";
 
-      if (relatedItems.length > 0) {
-        const firstItem = relatedItems[0];
-        const data = firstItem?.data || {};
+            if (relatedItems.length > 0) {
+              const firstItem = relatedItems[0];
+              const data = firstItem?.data || {};
 
-        // 🔍 tenta achar um campo com "nome" (prioritário)
-        const nomeKey = Object.keys(data).find(
-          k => k.toLowerCase().includes("nome")
-        );
+              // 🔍 tenta achar um campo com "nome" (prioritário)
+              const nomeKey = Object.keys(data).find(
+                k => k.toLowerCase().includes("nome")
+              );
 
-        // 🧭 se não tiver "nome", usa o primeiro da configuração ou o primeiro disponível
-        const mainFieldName =
-          nomeKey || relConfig?.fieldNames?.[0] || Object.keys(data)[0];
+              // 🧭 se não tiver "nome", usa o primeiro da configuração ou o primeiro disponível
+              const mainFieldName =
+                nomeKey || relConfig?.fieldNames?.[0] || Object.keys(data)[0];
 
-        const firstValue = data?.[mainFieldName] ?? "-";
+              const firstValue = data?.[mainFieldName] ?? "-";
 
-        displayValue =
-          relatedItems.length > 1 ? `${firstValue}…` : String(firstValue);
-      }
+              displayValue =
+                relatedItems.length > 1 ? `${firstValue}…` : String(firstValue);
+            }
 
-      return (
-        <td
-          key={field.id}
-          className="px-4 py-3 border-b max-w-[250px] truncate"
-          title={displayValue}
-        >
-          {displayValue}
-        </td>
-      );
-    }
-
-    // 🧮 Campos normais (texto, número, fórmula, etc)
-    const displayValue =
-      typeof value === "number"
-        ? value.toFixed(2)
-        : String(value ?? "-");
-
-    return (
-      <td
-        key={field.id}
-        className="px-4 py-3 border-b max-w-[200px] truncate"
-        title={displayValue}
-      >
-        {displayValue}
-      </td>
-    );
-  })}
-
-
-
-
-            <td className="px-4 py-3 border-b text-right whitespace-nowrap">
-              <button
-                onClick={(e) => handleMenuClick(e, record)}
-                className="p-1.5 rounded-md hover:bg-gray-100 transition"
+            return (
+              <td
+                key={field.id}
+                className="px-4 py-3 border-b max-w-[250px] truncate"
+                title={displayValue}
               >
-                <MoreVertical className="w-5 h-5 text-gray-600" />
-              </button>
+                {displayValue}
+              </td>
+            );
+          }
+
+          // 🧮 Campos normais (texto, número, fórmula, etc)
+          const displayValue =
+            typeof value === "number"
+              ? value.toFixed(2)
+              : String(value ?? "-");
+
+          return (
+            <td
+              key={field.id}
+              className="px-4 py-3 border-b max-w-[200px] truncate"
+              title={displayValue}
+            >
+              {displayValue}
             </td>
-          </tr>
-        ))
-      )}
-    </tbody>
-  </table>
+          );
+        })}
 
-  {/* --- Menu Flutuante --- */}
-  {showMenu && (
-    <div
-      ref={menuRef}
-      className="fixed z-[10000] bg-white border border-gray-200 rounded-lg shadow-lg w-40"
-      style={{
-        top: `${menuPosition.y}px`,
-        left: `${menuPosition.x}px`,
-      }}
-    >
-       <button
-        onClick={() =>
-          handleViewClick(filteredRecords.find((r) => r.id === showMenu))
-        }
-        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-blue-600 hover:bg-gray-50"
-      >
-        <Eye className="w-4 h-4" />
-        Ver
-      </button>
-      <button
-        onClick={() =>
-          handleEditClick(filteredRecords.find((r) => r.id === showMenu))
-        }
-        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-blue-600 hover:bg-gray-50"
-      >
-        <Edit className="w-4 h-4" />
-        Editar
-      </button>
-      <button
-        onClick={() =>
-          handleDeleteClick(filteredRecords.find((r) => r.id === showMenu))
-        }
-        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-gray-50"
-      >
-        <Trash2 className="w-4 h-4" />
-        Excluir
-      </button>
-    </div>
-  )}
 
-  {/* --- Modal de Exclusão --- */}
-  {selectedRecord && action === "excluir" && (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[10000]">
-      <div className="bg-white rounded-xl p-6 shadow-lg w-[90%] max-w-sm relative">
-        <button
-          onClick={() => setSelectedRecord(null)}
-          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-        >
-          <X className="w-5 h-5" />
-        </button>
 
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">
-          Confirmar exclusão
-        </h3>
-        <p className="text-sm text-gray-600 mb-6">
-          Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.
-        </p>
 
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={() => setSelectedRecord(null)}
-            className="px-4 py-2 text-sm rounded-md border border-gray-300 hover:bg-gray-50 transition"
+                  <td className="px-4 py-3 border-b text-right whitespace-nowrap">
+                    <button
+                      onClick={(e) => handleMenuClick(e, record)}
+                      className="p-1.5 rounded-md hover:bg-gray-100 transition"
+                    >
+                      <MoreVertical className="w-5 h-5 text-gray-600" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+
+        {/* --- Menu Flutuante --- */}
+        {showMenu && (
+          <div
+            ref={menuRef}
+            className="fixed z-[10000] bg-white border border-gray-200 rounded-lg shadow-lg w-40"
+            style={{
+              top: `${menuPosition.y}px`,
+              left: `${menuPosition.x}px`,
+            }}
           >
-            Cancelar
-          </button>
-          <button
-            onClick={confirmDelete}
-            className="px-4 py-2 text-sm rounded-md bg-red-600 text-white hover:bg-red-500 transition"
-          >
-            Excluir
-          </button>
-        </div>
+            <button
+              onClick={() =>
+                handleViewClick(filteredRecords.find((r) => r.id === showMenu))
+              }
+              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-blue-600 hover:bg-gray-50"
+            >
+              <Eye className="w-4 h-4" />
+              Ver
+            </button>
+            <button
+              onClick={() =>
+                handleEditClick(filteredRecords.find((r) => r.id === showMenu))
+              }
+              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-blue-600 hover:bg-gray-50"
+            >
+              <Edit className="w-4 h-4" />
+              Editar
+            </button>
+            <button
+              onClick={() =>
+                handleDeleteClick(filteredRecords.find((r) => r.id === showMenu))
+              }
+              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-gray-50"
+            >
+              <Trash2 className="w-4 h-4" />
+              Excluir
+            </button>
+          </div>
+        )}
+
+        {/* --- Modal de Exclusão --- */}
+        {selectedRecord && action === "excluir" && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[10000]">
+            <div className="bg-white rounded-xl p-6 shadow-lg w-[90%] max-w-sm relative">
+              <button
+                onClick={() => setSelectedRecord(null)}
+                className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                Confirmar exclusão
+              </h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.
+              </p>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setSelectedRecord(null)}
+                  className="px-4 py-2 text-sm rounded-md border border-gray-300 hover:bg-gray-50 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 text-sm rounded-md bg-red-600 text-white hover:bg-red-500 transition"
+                >
+                  Excluir
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* --- Modal de Edição --- */}
+        {selectedRecord && action === "editar" && (
+          <RecordCreator
+            fields={fields}
+            subFields={subFields}
+            record={selectedRecord}
+            submodule_id={selectedRecord.submodule_id}
+            fetchRecords={fetchRecords}
+            isOpen={action}
+            onClose={() => setAction("")}
+            creating={true}
+          />
+        )}
+        {selectedRecord && action === "view" && (
+          <RecordViewModal
+            fields={fields}
+            subFields={subFields}
+            record={selectedRecord}
+            fetchRecords={fetchRecords}
+            isOpen={action}
+            onClose={() => setAction("")}
+          />
+        )}
       </div>
-    </div>
-  )}
-
-  {/* --- Modal de Edição --- */}
-  {selectedRecord && action === "editar" && (
-    <RecordCreator
-      fields={fields}
-      subFields={subFields}
-      record={selectedRecord}
-      submodule_id={selectedRecord.submodule_id}
-      fetchRecords={fetchRecords}
-      isOpen={action}
-      onClose={() => setAction("")}
-      creating={true}
-    />
-  )}
-  {selectedRecord && action === "view" && (
-    <RecordViewModal
-      fields={fields}
-      subFields={subFields}
-      record={selectedRecord}
-      fetchRecords={fetchRecords}
-      isOpen={action}
-      onClose={() => setAction("")}
-    />
-  )}
-</div>
 
     </div>
   );

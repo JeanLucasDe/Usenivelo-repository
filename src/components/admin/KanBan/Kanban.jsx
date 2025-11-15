@@ -632,6 +632,7 @@ const handleRenameStep = async (stepId) => {
                               onMainClick={() =>  {
                                 selectSubmodule('main', step.id)
                                 setRecord([]);
+                                setOnlyView(false);
                               }}
                               options={usuarioComSubmodules?.submodules?.map((sub) => ({
                                 label: sub.name,
@@ -645,6 +646,7 @@ const handleRenameStep = async (stepId) => {
                                 setFormData(prev => ({ ...prev, _submodule_id: submodule.submodule_id }));
                                 selectSubmodule(submodule, step.id);
                                 setRecord([]);
+                                setOnlyView(false);
                               }}
                             />
 
