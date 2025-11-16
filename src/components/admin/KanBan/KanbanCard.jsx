@@ -676,6 +676,7 @@ const handleDescriptionChange = (value) => {
               ...payload,
               created_by,
               position,
+              submodule_id: submodule_id ? submodule_id: '',
               record_id: recordResult?.id || null, // null é válido
             },
           ])
@@ -723,7 +724,12 @@ const handleDescriptionChange = (value) => {
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
 
 
-
+ useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, []);
 
 
   if (!isOpen) return null
@@ -751,24 +757,24 @@ const handleDescriptionChange = (value) => {
       :
       !limiteAtingido ? (
      <div
-  className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+  className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 backdrop-blur-sm font-sans"
   onClick={onClose}
 >
   <div
     onClick={(e) => e.stopPropagation()}
-    className="relative w-full max-w-5xl bg-white dark:bg-gray-900 rounded-lg shadow-2xl flex flex-col md:flex-row overflow-hidden animate-fadeIn"
+    className="relative w-full max-w-5xl bg-white dark:bg-gray-900 rounded-lg shadow-2xl flex flex-col md:flex-row overflow-y-auto max-h-[95vh] md:overflow-hidden animate-fadeIn mx-2 mb-4 mt-0"
   >
     {/* COLUNA PRINCIPAL (ESQUERDA) */}
-    <div className="flex-1 px-6 py-6 overflow-y-auto max-h-[90vh]">
+    <div className="flex-1 px-6 py-6 md:overflow-y-auto ">
 
       {/* Título */}
       <div className="flex items-center justify-between  pb-4 mb-4 w-full">
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 flex items-center w-full">
-                <Input
+                <input
                 value={previewData.title || ""} // valor default
                 onChange={(e) => handleTitleChange(e.target.value)}
                 placeholder="Título do card"
-                className="border-b border-gray-300 dark:border-gray-600"
+                className="border-b border-gray-300 dark:border-gray-600 w-full"
                 disabled={onlyView}
                 />
                 {loading && <Loader2 className="w-5 h-5 animate-spin text-gray-500 ml-2" />}
@@ -813,239 +819,239 @@ const handleDescriptionChange = (value) => {
     </div>
 
     {/* COLUNA LATERAL (DIREITA) */}
-  <div className="w-full md:w-80 border-l bg-gray-50 dark:bg-gray-800 flex flex-col max-h-[90vh]">
+    <div className="w-full md:w-80 border-l bg-gray-50 dark:bg-gray-800 flex flex-col">
 
-    {/* ÁREA ROLÁVEL */}
-    <div className="flex-1 overflow-y-auto p-4 space-y-6">
-      <h4 className="uppercase tracking-wide text-xs font-semibold text-gray-500">
-        Adicionar ao card
-      </h4>
+      {/* ÁREA ROLÁVEL */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        <h4 className="uppercase tracking-wide text-xs font-semibold text-gray-500">
+          Adicionar ao card
+        </h4>
 
-      {/* LABELS */}
-      <div>
-        {canEdit &&<button
-          onClick={() => setOpenMenu(openMenu === 'labels' ? null : 'labels')}
-          className="w-full flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border rounded-md text-sm"
-        >
-          <Tag className="w-4 h-4" /> Labels
-        </button>}
-
-        {openMenu === 'labels' && (
-          <div className="mt-2 p-1 border rounded bg-gray-100 dark:bg-gray-700 space-y-3">
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={newLabel}
-                onChange={(e) => setNewLabel(e.target.value)}
-                placeholder="Nome do label"
-                className="flex-1 px-2 py-2 border rounded text-sm dark:bg-gray-800 max-w-[120px]"
-              />
-              <input
-                type="color"
-                value={newLabelColor}
-                onChange={(e) => setNewLabelColor(e.target.value)}
-                className="w-8 h-8 rounded"
-              />
-              <button
-                onClick={addLabel}
-                className="p-2 bg-green-500 text-white rounded hover:bg-green-600"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {canEdit && <div className="flex flex-wrap gap-2 mt-3">
-          {cardExtras.labels.map((label, idx) => (
-            <div
-              key={idx}
-              className="flex items-center gap-1 px-2 py-1 text-xs text-white rounded-md"
-              style={{ backgroundColor: label.color }}
-            >
-              {label.name}
-              <button
-                onClick={() =>
-                  setCardExtras(prev => ({
-                    ...prev,
-                    labels: prev.labels.filter((_, i) => i !== idx)
-                  }))
-                }
-                className="text-white/70 hover:text-white"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          ))}
-        </div>}
-      </div>
-
-      {/* CHECKLIST */}
-      <div>
-        {canEdit && <button
-          onClick={() => setOpenMenu(openMenu === 'checklist' ? null : 'checklist')}
-          className="w-full flex items-center justify-between px-3 py-2 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border rounded-md text-sm"
-        >
-          <span className="flex items-center gap-2"><CheckSquare className="w-4 h-4" /> Checklist</span>
-          <span className="text-xs text-gray-500">{cardExtras.checklist.filter(i => i.done).length}/{cardExtras.checklist.length}</span>
-        </button>}
-
-        {openMenu === 'checklist' && (
-          <div className="mt-2 p-1 border rounded bg-gray-100 dark:bg-gray-700 space-y-2">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newChecklistItem}
-                onChange={(e) => setNewChecklistItem(e.target.value)}
-                placeholder="Novo item"
-                className="flex-1 px-1 py-1 border rounded text-sm dark:bg-gray-800"
-              />
-              <button
-                onClick={addChecklistItem}
-                className="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {canEdit &&<div className="mt-2 space-y-1">
-          {cardExtras.checklist.map((item, idx) => (
-            <div key={idx} className="group flex items-center justify-between p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={item.done}
-                  onChange={() => toggleChecklistDone(idx)}
-                  className="w-4 h-4 accent-green-600"
-                />
-                <span className={`text-sm ${item.done ? "line-through text-gray-400" : "text-gray-800 dark:text-gray-200"}`}>
-                  {item.name}
-                </span>
-              </label>
-              <button
-                onClick={() =>
-                  setCardExtras(prev => ({
-                    ...prev,
-                    checklist: prev.checklist.filter((_, i) => i !== idx)
-                  }))
-                }
-                className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-600 transition"
-              >
-                <Trash2 size={16} />
-              </button>
-            </div>
-          ))}
-        </div>}
-      </div>
-
-      {/* COMENTÁRIOS */}
-      <div>
-        <button
-          onClick={() => setOpenMenu(openMenu === 'comments' ? null : 'comments')}
-          className="w-full flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border rounded-md text-sm"
-        >
-          💬 Comentários
-        </button>
-
-        {openMenu === 'comments' && (
-          <div className="mt-2 p-3 border rounded bg-gray-100 dark:bg-gray-700 space-y-3">
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Escreva um comentário..."
-              className="w-full px-3 py-2 border rounded-md text-sm dark:bg-gray-800"
-              rows={3}
-            />
-            <button
-              onClick={addComment}
-              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-500"
-            >
-              Comentar
-            </button>
-          </div>
-        )}
-      </div>
-      <div className="mt-3 space-y-2">
-  {cardExtras.comments.map((c, idx) => {
-    const userData = usuarios.find(u => u.id === c.id);
-    const name = userData?.full_name ?? "Usuário";
-    const company = companies.find((comp) => comp.id === userData.company_id);
-    const avatar = company?.logo;
-    const isOwner = user?.id === kanban.user_id; // <-- Dono do kanban?
-
-    return (
-      <div
-        key={idx}
-        className="relative flex gap-2 p-2 border rounded bg-white dark:bg-gray-700"
-      >
-        {/* Botão APAGAR — só aparece para o dono do kanban */}
-        {isOwner && (
-          <button
-            onClick={() => {
-              deleteComment(idx)
-            }}
-            className="absolute top-1 right-1 text-gray-400 hover:text-red-500 text-xs"
-            title="Remover comentário"
+        {/* LABELS */}
+        <div>
+          {canEdit &&<button
+            onClick={() => setOpenMenu(openMenu === 'labels' ? null : 'labels')}
+            className="w-full flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border rounded-md text-sm"
           >
-            🗑️
-          </button>
-        )}
+            <Tag className="w-4 h-4" /> Labels
+          </button>}
 
-        {/* Avatar */}
-        <div className="w-4 h-4 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
-          {avatar ? (
-            <img src={avatar} className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-              {name.slice(0, 1).toUpperCase()}
-            </span>
+          {openMenu === 'labels' && (
+            <div className="mt-2 p-1 border rounded bg-gray-100 dark:bg-gray-700 space-y-3">
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newLabel}
+                  onChange={(e) => setNewLabel(e.target.value)}
+                  placeholder="Nome do label"
+                  className="flex-1 px-2 py-2 border rounded text-sm dark:bg-gray-800 max-w-[120px]"
+                />
+                <input
+                  type="color"
+                  value={newLabelColor}
+                  onChange={(e) => setNewLabelColor(e.target.value)}
+                  className="w-8 h-8 rounded"
+                />
+                <button
+                  onClick={addLabel}
+                  className="p-2 bg-green-500 text-white rounded hover:bg-green-600"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {canEdit && <div className="flex flex-wrap gap-2 mt-3">
+            {cardExtras.labels.map((label, idx) => (
+              <div
+                key={idx}
+                className="flex items-center gap-1 px-2 py-1 text-xs text-white rounded-md"
+                style={{ backgroundColor: label.color }}
+              >
+                {label.name}
+                <button
+                  onClick={() =>
+                    setCardExtras(prev => ({
+                      ...prev,
+                      labels: prev.labels.filter((_, i) => i !== idx)
+                    }))
+                  }
+                  className="text-white/70 hover:text-white"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>}
+        </div>
+
+        {/* CHECKLIST */}
+        <div>
+          {canEdit && <button
+            onClick={() => setOpenMenu(openMenu === 'checklist' ? null : 'checklist')}
+            className="w-full flex items-center justify-between px-3 py-2 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border rounded-md text-sm"
+          >
+            <span className="flex items-center gap-2"><CheckSquare className="w-4 h-4" /> Checklist</span>
+            <span className="text-xs text-gray-500">{cardExtras.checklist.filter(i => i.done).length}/{cardExtras.checklist.length}</span>
+          </button>}
+
+          {openMenu === 'checklist' && (
+            <div className="mt-2 p-1 border rounded bg-gray-100 dark:bg-gray-700 space-y-2">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newChecklistItem}
+                  onChange={(e) => setNewChecklistItem(e.target.value)}
+                  placeholder="Novo item"
+                  className="flex-1 px-1 py-1 border rounded text-sm dark:bg-gray-800"
+                />
+                <button
+                  onClick={addChecklistItem}
+                  className="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {canEdit &&<div className="mt-2 space-y-1">
+            {cardExtras.checklist.map((item, idx) => (
+              <div key={idx} className="group flex items-center justify-between p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={item.done}
+                    onChange={() => toggleChecklistDone(idx)}
+                    className="w-4 h-4 accent-green-600"
+                  />
+                  <span className={`text-sm ${item.done ? "line-through text-gray-400" : "text-gray-800 dark:text-gray-200"}`}>
+                    {item.name}
+                  </span>
+                </label>
+                <button
+                  onClick={() =>
+                    setCardExtras(prev => ({
+                      ...prev,
+                      checklist: prev.checklist.filter((_, i) => i !== idx)
+                    }))
+                  }
+                  className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-600 transition"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+          </div>}
+        </div>
+
+        {/* COMENTÁRIOS */}
+        <div>
+          <button
+            onClick={() => setOpenMenu(openMenu === 'comments' ? null : 'comments')}
+            className="w-full flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border rounded-md text-sm"
+          >
+            💬 Comentários
+          </button>
+
+          {openMenu === 'comments' && (
+            <div className="mt-2 p-3 border rounded bg-gray-100 dark:bg-gray-700 space-y-3">
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Escreva um comentário..."
+                className="w-full px-3 py-2 border rounded-md text-sm dark:bg-gray-800"
+                rows={3}
+              />
+              <button
+                onClick={addComment}
+                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-500"
+              >
+                Comentar
+              </button>
+            </div>
           )}
         </div>
+        <div className="mt-3 space-y-2">
+    {cardExtras.comments.map((c, idx) => {
+      const userData = usuarios.find(u => u.id === c.id);
+      const name = userData?.full_name ?? "Usuário";
+      const company = companies.find((comp) => comp.id === userData.company_id);
+      const avatar = company?.logo;
+      const isOwner = user?.id === kanban.user_id; // <-- Dono do kanban?
 
-        {/* Texto */}
-        <div className="flex-1">
-          <div className="text-xs gap-1">
-            <p className="truncate max-w-[120px] group relative cursor-default">
-              {name}
-            </p>
-            <span className="text-gray-500">
-              {new Date(c.created_at).toLocaleString("pt-BR")}
-            </span>
+      return (
+        <div
+          key={idx}
+          className="relative flex gap-2 p-2 border rounded bg-white dark:bg-gray-700"
+        >
+          {/* Botão APAGAR — só aparece para o dono do kanban */}
+          {isOwner && (
+            <button
+              onClick={() => {
+                deleteComment(idx)
+              }}
+              className="absolute top-1 right-1 text-gray-400 hover:text-red-500 text-xs"
+              title="Remover comentário"
+            >
+              🗑️
+            </button>
+          )}
+
+          {/* Avatar */}
+          <div className="w-4 h-4 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
+            {avatar ? (
+              <img src={avatar} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                {name.slice(0, 1).toUpperCase()}
+              </span>
+            )}
           </div>
-          <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap mt-1">
-            {c.message}
+
+          {/* Texto */}
+          <div className="flex-1">
+            <div className="text-xs gap-1">
+              <p className="truncate max-w-[120px] group relative cursor-default">
+                {name}
+              </p>
+              <span className="text-gray-500">
+                {new Date(c.created_at).toLocaleString("pt-BR")}
+              </span>
+            </div>
+            <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap mt-1">
+              {c.message}
+            </div>
           </div>
         </div>
+      );
+    })}
+        </div>
+
       </div>
-    );
-  })}
-      </div>
 
-    </div>
-
-    {/* BOTÕES FIXOS */}
-    <div className="border-t p-4 bg-gray-50 dark:bg-gray-800">
-      <Button
-        onClick={handleSave}
-        disabled={loading || calculating }
-        className="w-full bg-blue-600 hover:bg-blue-500 text-white"
-      >
-        {loading ? "Salvando..." : "Salvar"}
-      </Button>
-
-      {!shared && (
-        <button
-          onClick={onClose}
-          className="w-full mt-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
+      {/* BOTÕES FIXOS */}
+      <div className="border-t p-4 bg-gray-50 dark:bg-gray-800">
+        <Button
+          onClick={handleSave}
+          disabled={loading || calculating }
+          className="w-full bg-blue-600 hover:bg-blue-500 text-white"
         >
-          Fechar
-        </button>
-      )}
-    </div>
+          {loading ? "Salvando..." : "Salvar"}
+        </Button>
 
-  </div>
+        {!shared && (
+          <button
+            onClick={onClose}
+            className="w-full mt-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
+          >
+            Fechar
+          </button>
+        )}
+      </div>
+
+    </div>
 
   </div>
 </div>

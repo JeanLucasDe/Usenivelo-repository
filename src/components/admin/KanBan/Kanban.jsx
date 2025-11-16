@@ -758,7 +758,7 @@ const handleRenameStep = async (stepId) => {
                       <button
                         className="text-left w-full px-3 py-2 hover:bg-gray-100"
                         onClick={() => {
-                          const sub = submodules.find(i => i.id === card?.data?.submodule_id);
+                          const sub = submodules.find(i => i.id === card?.submodule_id);
                           selectSubmoduleButton(sub ? sub : 'main', step.id);
                           setRecord({ data: card?.data, ...card });
                           setOpenMenuCardId(null);
@@ -773,9 +773,7 @@ const handleRenameStep = async (stepId) => {
                         className="text-left w-full px-3 py-2 hover:bg-gray-100"
                         onClick={() => {
 
-                          const sub = submodules.find(i => i.id === card?.data?.submodule_id)
-                          console.log(card)
-
+                          const sub = submodules.find(i => i.id === card?.submodule_id)
                           selectSubmoduleButton(sub, step.id);
                           setRecord({ data: card?.data, ...card });
                           setCanEdit(true);
