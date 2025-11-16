@@ -51,6 +51,8 @@ export default function ModernSidebarLayout({
   const [openCreateKanban, setOpenCreateKanban] = useState(false)
   const [newKanbanName, setNewKanbanName] = useState('')
 
+
+
   
 
 
@@ -99,7 +101,10 @@ export default function ModernSidebarLayout({
             return (
               <button
                 key={mod.id}
-                onClick={() => handleSelectModule(mod)}
+                onClick={() => {
+                  setCreateSubModuleModal(false)
+                  setOpenCreateKanban(false)
+                  handleSelectModule(mod)}}
                 title={mod.label}
                 className={`flex items-center w-full px-4 py-3 rounded-xl transition-all duration-200 ${
                   active
@@ -200,9 +205,8 @@ export default function ModernSidebarLayout({
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
-              
               <div className="flex items-center ">
-                {sub.userLogo ? <img src={sub.userLogo} className="w-8 h-8 mr-2  border border-gray-300 rounded-full"/>: sub.kanban && <UserCircle2 className="mr-3 w-7 h-7"/>}
+                {sub.kanban ? sub.userLogo ? <img src={sub.userLogo} className="w-8 h-8 mr-2  border border-gray-300 rounded-full"/>: <UserCircle2 className="mr-3 w-7 h-7"/>:null}
                 <span className="truncate max-w-[200px]">{sub.label}</span>
 
               </div>
@@ -300,6 +304,54 @@ export default function ModernSidebarLayout({
 
         </div>
       )}
+      {createSubModuleModal && (
+        <div className="p-4 bg-white dark:bg-gray-800 rounded shadow mt-2">
+          <input
+            type="text"
+            placeholder="Nome do submodulo"
+            value={newKanbanName}
+            onChange={(e) => setNewKanbanName(e.target.value)}
+            className="w-full px-3 py-2 rounded border dark:border-gray-600 dark:bg-gray-700"
+          />
+          <Button
+          className="mt-2 px-4 py-2 text-white rounded w-full"
+          onClick={async () => {
+
+            const { data: dataUser, error: userError } = await supabase.auth.getUser();
+            const user = dataUser?.user;
+
+            if (userError || !user || !newKanbanName.trim()) return;
+
+            // 🔹 Cria o submódulo Kanban
+            const { data: subm, error } = await supabase
+              .from("submodules")
+              .insert({
+                name: newKanbanName,
+                module_id: selectedModule.id,
+                type: "Customizado",
+                share: false,
+                path: `/admin/KanBan/`,
+                user_id: user.id,
+              })
+              .select();
+
+            if (error || !subm?.length) {
+              console.error(error);
+              toast({ title: "Erro", description: "Não foi possível criar o Kanban" });
+              return;
+            }
+            // 🔹 Feedback e navegação
+            toast({ title: "Submódulo criado!", description: newKanbanName });
+            setCreateSubModuleModal(false);
+            setNewKanbanName("");
+            refreshSidebar()
+          }}
+        >
+          Criar
+        </Button>
+
+        </div>
+      )}
 
 
 
@@ -312,9 +364,15 @@ export default function ModernSidebarLayout({
             variant="outline"
             size="sm"
             className="w-full justify-center border-dashed"
-            onClick={() => setCreateSubModuleModal(true)}
+            onClick={() => setCreateSubModuleModal(!createSubModuleModal)}
           >
-            <Plus className="w-4 h-4 mr-1" /> Adicionar Submódulo
+             {createSubModuleModal ? 
+             <div className="flex items-center">
+              <X className="w-4 h-4 mr-1" /> Cancelar
+             </div>: 
+             <div className="flex items-center">
+              <Plus className="w-4 h-4 mr-1" /> Adicionar submódulo
+             </div>}
           </Button>
         </div>
       )}

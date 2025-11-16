@@ -25,7 +25,7 @@ function App() {
   };
 
   return (
-    <Routes>
+    <Routes> 
       <Route path="/" element={<LandingPage />} />
       <Route path="/sharedsubmodules/:module_id/sub/:sub_id" element={<SharedServiceView />} />
       <Route path="/documentation" element={<Documentation/>} />

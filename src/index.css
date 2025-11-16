@@ -137,3 +137,10 @@ body {
   scrollbar-width: thin;               /* auto | thin | none */
   scrollbar-color: #9333ea transparent; /* thumb color, track color */
 }
+
+/* Aplica font-sans globalmente */
+@layer base {
+  html {
+    @apply font-sans;
+  }
+}
