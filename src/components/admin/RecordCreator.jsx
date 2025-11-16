@@ -152,17 +152,17 @@ function calculateField(field, recordData) {
   });
   fetchFormConfig()
   }, []);
+
   // Recalcula fórmulas dinamicamente e salva valores no cache (fórmulas + subfields)
   useEffect(() => {
     if (!fields?.length || !submodule_id) return;
-
-    
     fetchRelated()
     setLoading(false)
   }, [fields, subFields, submodule_id]);
   useEffect(() => {
       setIsFormValid(checkRequiredFields());
     }, [formData, fields]);
+
     useEffect(() => {
     if (!creating && formConfig[0]?.form_type === 'confirmation') {
       const saved = localStorage.getItem(CONFIRMATION_KEY);
@@ -170,24 +170,39 @@ function calculateField(field, recordData) {
     }
   }, [submodule_id, formConfig]);
 
+  // evita rodar antes de fields carregarem
+  useEffect(() => {
+  
+  if (!fields?.length) return;
+
+  const updatedPreview = { ...(record?.data || {}), ...formData };
+  const formulaFields = fields.filter(f => f.field_type === "formula");
+  formulaFields.forEach(f => {
+    updatedPreview[f.name] = calculateField(f, updatedPreview) ?? 0;
+  });
+  setPreviewData(updatedPreview);
+  }, [formData, fields, record]);
 
 
 
-  // Atualiza valor
-  const handleChange = (name, value) => {
-    setFormData(prev => {
+
+  // ===== handleChange =====
+const handleChange = (name, value) => {
+  setFormData(prev => {
     const nextFormData = { ...prev, [name]: value };
 
-    // Atualiza previewData com todos os campos atuais
-    const updatedPreview = { ...nextFormData };
+    // Monta preview atualizado com base no nextFormData
+    const updatedPreview = { ...(record?.data || {}), ...nextFormData };
 
-    // Recalcula fórmulas automaticamente
+    // Recalcula fórmulas a partir dos fields (se houver)
     const formulaFields = fields.filter(f => f.field_type === "formula");
     formulaFields.forEach(f => {
       updatedPreview[f.name] = calculateField(f, updatedPreview) ?? 0;
     });
 
+    // Atualiza preview visual
     setPreviewData(updatedPreview);
+
     return nextFormData;
   });
 };
@@ -413,8 +428,31 @@ const renderInput = (field) => {
   const handleSave = async () => {
   setLoading(true);
   try {
-    // previewData já contém todos os valores do formulário
-    const payload = { data: previewData };
+    // Build preview at save time from the freshest sources
+    const currentBase = { ...(record?.data || {}) };
+    const merged = { ...currentBase, ...formData }; // formData contém os últimos valores do usuário
+
+    // Recalcula fórmulas garantindo valores corretos
+    const formulaFields = fields.filter(f => f.field_type === "formula");
+    formulaFields.forEach(f => {
+      merged[f.name] = calculateField(f, merged) ?? 0;
+    });
+
+    // Se houver campos derivados (ex: title/description manipulados por controles separados),
+    // garanta que merged receba previewData.title/description se necessário:
+    if (previewData?.title !== undefined) merged.title = previewData.title;
+    if (previewData?.description !== undefined) merged.description = previewData.description;
+
+    // Monta payload final
+    const payloadData = {
+      ...merged,
+      // se usar extras (labels/checklist/comments) para kanban/card, junte aqui:
+      labels: kanban && cardExtras?.labels || currentBase.labels || [],
+      checklist: kanban && cardExtras?.checklist || currentBase.checklist || [],
+      comments:  kanban && cardExtras?.comments || currentBase.comments || [],
+    };
+
+    const payload = { data: payloadData };
 
     if (record?.id) {
       // Atualiza registro existente
@@ -428,60 +466,55 @@ const renderInput = (field) => {
 
       if (error) throw error;
 
-      toast({
-        title: 'Registro Atualizado',
-        description: 'Registro atualizado com sucesso!',
-      });
+      toast({ title: "Registro Atualizado", description: "Registro atualizado com sucesso!" });
 
-      setRecordsData(prev => ({ ...prev, data: { ...prev.data, ...previewData } }));
+      // atualiza estado local (opcional)
+      setRecordsData(prev => ({ ...prev, data: { ...prev.data, ...payloadData } }));
     } else {
-       
-      const { error } = await supabase
+      // Criar novo registro
+      const insertBody = {
+        submodule_id,
+        ...payload,
+        created_at: new Date().toISOString(),
+      };
+
+      const { data: newRecord, error } = await supabase
         .from("submodule_records")
-        .insert([
-          {
-            submodule_id,
-            ...payload,
-            created_at: new Date().toISOString(),
-          },
-        ]);
+        .insert([insertBody])
+        .select()
+        .single();
 
       if (error) throw error;
 
-      toast({
-        title: 'Registro Criado',
-        description: 'Registro salvo com sucesso!',
-      });
+      toast({ title: "Registro Criado", description: "Registro salvo com sucesso!" });
+
+      // Se também precisa criar kanban_card
+      if (kanban) {
+        const { error: errKanban } = await supabase
+          .from("kanban_cards")
+          .insert([{
+            step_id,
+            ...payload,
+            created_by,
+            position,
+            record_id: newRecord?.id || null
+          }]);
+
+        if (errKanban) throw errKanban;
+      }
     }
 
-    // Atualiza lista local
-    await fetchRecords && fetchRecords();
+    // Atualiza listas e UI
+    await fetchRecords?.();
+    await handleReloadKanban?.();
 
-    // Limpa formulário se não for lembrar
-    
-
-    if (!creating && formConfig[0].form_type === 'confirmation') {
+    if (!creating && formConfig[0]?.form_type === "confirmation") {
       localStorage.setItem(CONFIRMATION_KEY, "true");
       setAlreadySubmitted(true);
     }
-    if(kanban) {
-      const { error } = await supabase
-      .from("kanban_cards")
-      .insert([
-        {
-          step_id,
-          ...payload,
-          created_by,
-          position,
-        },
-      ]);
-      handleReloadKanban()
-    }
-    
-
   } catch (err) {
     console.error(err);
-    toast({ title: 'Erro', description: err.message || 'Não foi possível salvar' });
+    toast({ title: "Erro", description: err.message || "Não foi possível salvar" });
   } finally {
     setLoading(false);
   }
@@ -506,6 +539,16 @@ const renderInput = (field) => {
   const {title, subtitle, message} =  formConfig.length > 0 && formConfig[0].template_data
   // Ordena os fields pelo 'order', colocando null no final
     
+
+  useEffect(() => {
+    // Quando o modal abre
+    document.body.style.overflow = "hidden";
+
+    // Quando fecha
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, []);
 
  
 

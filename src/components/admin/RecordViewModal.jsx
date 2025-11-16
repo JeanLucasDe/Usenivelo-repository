@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Calculator, Layers } from "lucide-react";
+import { Calculator, Layers, X } from "lucide-react";
 
 export default function RecordViewModal({ isOpen, onClose, record, fields, subFields }) {
   if (!isOpen) return null;
+  const [openRelations, setOpenRelations] = useState({});
 
   const calculateField = (field, recordData) => {
     if (!field.formula) return recordData[field.name] ?? null;
@@ -19,6 +20,15 @@ export default function RecordViewModal({ isOpen, onClose, record, fields, subFi
       return null;
     }
   };
+    useEffect(() => {
+      // Quando o modal abre
+      document.body.style.overflow = "hidden";
+  
+      // Quando fecha
+      return () => {
+        document.body.style.overflow = "auto";
+      };
+    }, []);
 
   return (
     <div
@@ -26,70 +36,133 @@ export default function RecordViewModal({ isOpen, onClose, record, fields, subFi
   onClick={onClose}
 >
   <div
-    className="relative w-full max-w-4xl bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-y-auto max-h-[90vh] p-6 sm:p-8"
+    className="relative w-full max-w-4xl bg-white dark:bg-gray-900 rounded-sm shadow-2xl overflow-y-auto max-h-[90vh] p-6 sm:p-8"
     onClick={(e) => e.stopPropagation()}
   >
     {/* Header */}
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+    <div className="flex justify-between items-start sm:items-center gap-4 mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
       <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
         Visualizar Registro
       </h2>
       <Button variant="outline" onClick={onClose} className="sm:ml-auto">
-        Fechar
+        <X/>
       </Button>
     </div>
 
     {/* Campos */}
-    <div className="space-y-5">
+    <div className="space-y-5 flex flex-col">
       {fields.map((field) => {
-        const value = record.data?.[field.name];
 
+        const value = record.data?.[field.name];
         // Relation
+        // Relation (DROP-DOWN por registro)
         if (field.field_type === "relation") {
           const relatedConfig = field.relatedConfigs?.[0];
           const relatedItems = Array.isArray(value) ? value : [];
+          const DefaultValue = relatedConfig.defaultValue
+
+          const toggle = (id) => {
+            setOpenRelations(prev => ({
+              ...prev,
+              [id]: !prev[id]
+            }));
+          };
 
           return (
             <div key={field.id} className="mb-4">
               <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                {field.name} {relatedConfig?.submoduleName && <span className="text-gray-400 text-sm">({relatedConfig.submoduleName})</span>}
+                {field.name}{" "}
+                {relatedConfig?.submoduleName && (
+                  <span className="text-gray-400 text-sm">
+                    ({relatedConfig.submoduleName})
+                  </span>
+                )}
               </h4>
+
               {relatedItems.length === 0 ? (
-                <p className="text-gray-400 italic">Nenhum registro relacionado</p>
+                !DefaultValue ? (<p className="text-gray-400 italic">Nenhum registro relacionado</p>):
+                (<p className="text-gray-700 italic">{DefaultValue}</p>)
               ) : (
-                <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-                  <table className="min-w-full text-sm divide-y divide-gray-100 dark:divide-gray-700">
-                    <thead className="bg-gray-100 dark:bg-gray-800">
-                      <tr>
-                        {relatedConfig.fieldNames.map((fn) => (
-                          <th key={fn} className="px-4 py-2 text-left font-medium text-gray-600 dark:text-gray-300">
-                            {fn}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-700">
-                      {relatedItems.map((item, idx) => (
-                        <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                          {relatedConfig.fields.map((fid, i) => (
-                            <td key={fid} className="px-4 py-2">{item.data?.[relatedConfig.fieldNames[i]] ?? "-"}</td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="space-y-3">
+                  {relatedItems.map((item, idx) => {
+                    const isOpen = openRelations[item.recordId] || false;
+
+                    const nameKey = Object.keys(item.data || {}).find((k) =>
+                      ["nome", "name", "titulo", "model", "modelo"].some((x) =>
+                        k.toLowerCase().includes(x)
+                      )
+                    );
+
+                    const title = nameKey
+                      ? item.data[nameKey]
+                      : `Registro #${item.recordId.slice(0, 6)}`;
+
+                    return (
+                      <div
+                        key={item.recordId}
+                        className="border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden"
+                      >
+                        <button
+                          onClick={() => toggle(item.recordId)}
+                          className="w-full flex justify-between items-center px-4 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition "
+                        >
+                          <span className="font-medium text-gray-700 dark:text-gray-200 truncate sm:max-w-[140px]
+                          md:max-w-[200px]
+                          ">
+                            {title}
+                          </span>
+
+                          <span className="text-gray-500 dark:text-gray-300">
+                            {isOpen ? "▲" : "▼"}
+                          </span>
+                        </button>
+
+                        {isOpen && (
+                          <div className="px-4 py-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 space-y-1">
+                            {Object.entries(item.data || {}).map(([k, v]) => {
+                              if (k.startsWith("__")) return null;
+
+                              return (
+                                <div
+                                  key={k}
+                                  className="flex flex-col border-b border-gray-100 dark:border-gray-800 py-1"
+                                >
+                                  <span className="text-gray-900 dark:text-gray-300 text-sm">
+                                    {k}
+                                  </span>
+                                  <span className="text-gray-600 dark:text-gray-100 text-sm ">
+                                    {String(v) === '0' ? 'não' : String(v)}
+                                  </span>
+                                </div>
+                              );
+                            })}
+
+                            {item.quantity !== undefined && (
+                              <div className="flex justify-between border-b border-gray-100 dark:border-gray-800 py-1">
+                                <span className="text-gray-600 dark:text-gray-300 text-sm">
+                                  Quantidade
+                                </span>
+                                <span className="text-gray-900 dark:text-gray-100 text-sm">
+                                  {item.quantity}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
           );
         }
-
         // Boolean
         if (field.field_type === "boolean") {
           return (
             <div
               key={field.id}
-              className="flex items-center justify-between p-4 rounded-xl bg-green-50 dark:bg-green-900/20"
+              className="flex items-center justify-between  rounded-xl dark:bg-green-900/20"
             >
               <span className="font-medium text-gray-700 dark:text-gray-200">{field.name}</span>
               <span className={`font-semibold ${value ? "text-green-700 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}>
@@ -98,15 +171,7 @@ export default function RecordViewModal({ isOpen, onClose, record, fields, subFi
             </div>
           );
         }
-        if (field.field_type === "file" || 'link') {
-          return (
-            <div key={field.id} className="flex justify-between p-4 rounded-xl mb-2">
-              <span className="font-medium text-gray-700 dark:text-gray-200">{field.name}</span>
-              <a href={value} target="_blank" className="text-gray-900 dark:text-gray-100">{value ?? "-"}</a>
-            </div>
-          );
-        }
-
+        
         // Etapas
         if (field.field_type === "etapas") {
           const etapas = subFields.filter((sf) => sf.field_id === field.id);
@@ -134,7 +199,6 @@ export default function RecordViewModal({ isOpen, onClose, record, fields, subFi
           );
         }
         
-
         // Fórmula
         if (field.field_type === "formula") {
           const relatedSubs = subFields.filter((sf) => sf.field_id === field.id);
@@ -165,9 +229,9 @@ export default function RecordViewModal({ isOpen, onClose, record, fields, subFi
 
         // Text/Number
         return (
-          <div key={field.id} className="flex justify-between p-4 rounded-xl mb-2">
-            <span className="font-medium text-gray-700 dark:text-gray-200">{field.name}</span>
-            <span className="text-gray-900 dark:text-gray-100">{value ?? "-"}</span>
+          <div key={field.id} className="flex flex-col">
+            <span className="font-medium text-gray-800 dark:text-gray-700">{field.name}:</span>
+            <span className="text-gray-600 dark:text-gray-100">{value ?? "-"}</span>
           </div>
         );
       })}
