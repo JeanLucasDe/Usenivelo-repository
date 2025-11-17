@@ -769,7 +769,7 @@ const handleDescriptionChange = (value) => {
 
       {/* Título */}
       <div className="flex items-center justify-between  pb-4 mb-4 w-full">
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 flex items-center w-full">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center w-full">
                 <input
                 value={previewData.title || ""} // valor default
                 onChange={(e) => handleTitleChange(e.target.value)}

@@ -819,27 +819,28 @@ const handleRenameStep = async (stepId) => {
             </div>
 
             {/* Título e Subtítulo */}
-            <div className="flex justify-between">
-              <div className="flex flex-col space-y-1">
-                <div className="text-sm font-medium text-gray-800 truncate max-w-[120px]">{title}</div>
+            <div className="flex flex-col w-full space-y-2">
+              <div className="flex flex-col space-y-3 flex-1 min-w-0">
+                <div className="text-sm font-bold text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis w-full mt-3">{title}</div>
                 {subtitle && (
-                  <div className="text-xs text-gray-500 truncate max-w-[140px]">{subtitle}</div>
+                  <div className="text-xs text-gray-500 truncate max-w-[200px] whitespace-nowrap overflow-hidden text-ellipsis mt-1 w-full">{subtitle}</div>
                 )}
               </div>
-              <div className="flex items-end">
+
+            {/* Rodapé estilo Trello */}
+              <div className="flex items-center pt-0.5 border-t space-x-1 mt-0.5">
+
+              <div className="flex items-center gap-2 mt-2 text-xs text-gray-600 ">
                 {/* Comentários */}
                 <div className="flex items-center gap-1 text-xs text-gray-600">
                   <span className="flex items-center gap-1">💬 {card.data?.comments?.length || 0}</span>
                 </div>
                   {/* Checklist */}
-                <div className="flex items-center text-xs text-gray-600">
+                <div className="flex text-xs text-gray-600">
                   ✅ {card.data?.checklist?.filter(i => i.done).length || 0}/{card.data?.checklist?.length || 0}
                 </div>
               </div>
             </div>
-
-            {/* Rodapé estilo Trello */}
-            <div className="flex items-center mt-3 pt-2 border-t space-x-2">
               
 
               {/* Labels */}
