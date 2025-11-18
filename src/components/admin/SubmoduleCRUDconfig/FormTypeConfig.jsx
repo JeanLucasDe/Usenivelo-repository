@@ -103,6 +103,9 @@ export default function FormTypeConfig() {
             confirmation_mode: confirmationMode,
             image_url: imageURL,
             template_data: templateData,
+            sub_selected:submoduloSelect && submoduloSelect.id,
+            kanban_selected: kanbanSelect && kanbanSelect.id,
+            step_selected:stepSelect && stepSelect.id
           };
 
           const { data: insertedData, error: insertError } = await supabase
@@ -120,10 +123,13 @@ export default function FormTypeConfig() {
           }
         } else {
           
+          const sub = kanbans.find()
+
           setFormType(data.form_type || "normal");
           setConfirmationMode(data.confirmation_mode || "image");
           setImageURL(data.image_url || "");
           setTemplateData(data.template_data || templateData);
+          
         }
       } catch (err) {
         console.error(err);
@@ -144,14 +150,17 @@ export default function FormTypeConfig() {
         user_id: user.id,
         submodule_id:submoduleId,
         form_type:formType,
-        confirmation_mode: formType === "confirmation" ? confirmationMode : null,
-        image_url: formType === "confirmation" && confirmationMode === "image" ? imageURL : null,
-        template_data: formType === "confirmation" && confirmationMode === "template" ? templateData : null,
+        confirmation_mode: confirmationMode,
+        image_url: imageURL,
+        template_data: templateData,
+        sub_selected:submoduloSelect && submoduloSelect.id,
+        kanban_selected: kanbanSelect && kanbanSelect.id,
+        step_selected:stepSelect && stepSelect.id
       };
 
       const { error } = await supabase
         .from("user_submodule_form_config")
-        .upsert(upsertData, { onConflict: "user_id,submodule_id" });
+        .upsert(upsertData, { onConflict: "user_id, submodule_id" });
 
       if (error) throw error;
 
@@ -213,7 +222,6 @@ export default function FormTypeConfig() {
           </div>
         </div>
 
-{console.log(kanbans)}
         {formType === "confirmation" && (
           <div className="mt-4 space-y-4">
             <Separator />
