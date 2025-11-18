@@ -19,6 +19,7 @@
     const [userPerms, setUserPerms] = useState({}); // { stepId: [userId,...] }
     const [refresh, setRefresh] = useState(0)
     const [loading, setLoading] = useState(true)
+    const [step, setStep] = useState()
 
     // Carregar etapas e permissões
     const fetchSteps = async () => {
@@ -276,7 +277,9 @@
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setNewPermission(etapa.id)}
+                      onClick={() => {
+                        setStep(etapa)
+                        setNewPermission(etapa.id)}}
                       className="flex items-center gap-1 text-sm"
                     >
                       <Plus className="w-4 h-4" /> Usuário
@@ -286,6 +289,9 @@
                 </div>
 
                 {/* resto do conteúdo da etapa... */}
+                {newPermission && step.id === etapa.id && 
+
+                <PermissionCard setNewPermission={()=> setNewPermission(false)} fetchSteps={fetchSteps} step={step}/>}
                 <div>
                   {etapa.usuarios.length > 0 && (
                   <ul className="space-y-1 text-sm">

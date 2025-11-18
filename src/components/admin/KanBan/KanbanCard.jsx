@@ -608,6 +608,7 @@ const handleDescriptionChange = (value) => {
       labels: cardExtras.labels,
       checklist: cardExtras.checklist,
       comments: cardExtras.comments,
+      submodule_id:submodule_id
     };
 
     const payload = { data: payloadData };

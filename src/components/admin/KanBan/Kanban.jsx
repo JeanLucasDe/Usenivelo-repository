@@ -775,6 +775,7 @@ const handleRenameStep = async (stepId) => {
                         onClick={() => {
 
                           const sub = submodules.find(i => i.id === card?.submodule_id)
+                          console.log(sub)
                           selectSubmoduleButton(sub, step.id);
                           setRecord({ data: card?.data, ...card });
                           setCanEdit(true);
