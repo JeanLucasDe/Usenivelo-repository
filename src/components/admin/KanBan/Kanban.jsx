@@ -497,7 +497,6 @@ const handleRenameStep = async (stepId) => {
         </option>
       ))}
     </select>
-   {user.id === kanban.user_id &&
    <Button
     className="ml-2"
     onClick={()=> {
@@ -505,7 +504,7 @@ const handleRenameStep = async (stepId) => {
     }}
     >
       <PlusCircle className="mr-2"/> Novo
-    </Button>}
+    </Button>
   </div>
 
 
