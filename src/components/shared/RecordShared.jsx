@@ -18,7 +18,7 @@ import { uploadFileToSupabase } from "@/lib/uploadFile";
 
 // --- Componente principal --- //
 export default function RecordShared({ fields = [], subFields = [], submodule_id , record=[],fetchRecords, onClose, isOpen,page, shared, creating, limiteAtingido,
-logoUrl, userFieldsData, companyFieldsData,user,company, form_type, formConfig, sendForKanban,stepSelect,  userLogado}) {
+logoUrl, userFieldsData, companyFieldsData,user,company, form_type, formConfig, sendForKanban, stepSelect,  userLogado}) {
 
   const { toast } = useToast();
   const LOCAL_CACHE_KEY = `formulaCache_${submodule_id || "default"}`;
@@ -34,7 +34,6 @@ logoUrl, userFieldsData, companyFieldsData,user,company, form_type, formConfig, 
   const [relatedRecords, setRelatedRecords] = useState({});
   const CONFIRMATION_KEY = `confirmation_submodule_${submodule_id}`;
   const {title, message, subtitle} = formConfig.length > 0 && formConfig[0].template_data
-
 
 
 function calculateField(field, recordData) {
@@ -489,7 +488,6 @@ const handleChange = (name, value) => {
 
       //envia para kanban
     if (sendForKanban) {
-      console.log('kanban')
       const { error } = await supabase
       .from("kanban_cards")
       .insert([

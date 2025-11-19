@@ -12,12 +12,13 @@ export function RecordRelationField({
   kanban,
   onlyView,
 }) {
-  const selectedForField = formData[field.id] || [];
+  const selectedForField = formData[field.name] || [];
   const { toast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [showSearch, setShowSearch] = useState(true);
+  const [openRelations, setOpenRelations] = useState(false)
 
   // SELEÇÃO MÚLTIPLA
   const [selectedBatch, setSelectedBatch] = useState({}); // rec.id -> true/false
@@ -55,7 +56,6 @@ export function RecordRelationField({
 
     setFormData((prev) => ({
       ...prev,
-      [field.id]: newList,
       [field.name]: newList,
     }));
 
@@ -75,7 +75,6 @@ export function RecordRelationField({
     setSearchQuery("");
     setFormData((prev) => ({
       ...prev,
-      [field.id]: [...current, newItem],
       [field.name]: [...(prev[field.name] || []), newItem],
     }));
   };
@@ -86,7 +85,6 @@ export function RecordRelationField({
       const updatedName = prev[field.name].filter((_, i) => i !== idx);
       return {
         ...prev,
-        [field.id]: updatedId,
         [field.name]: updatedName,
       };
     });
@@ -115,9 +113,7 @@ export function RecordRelationField({
 
   return (
     <div
-      className={`space-y-2 w-full font-sans ${
-        (kanban && !canEdit) || onlyView ? "pointer-events-none" : ""
-      }`}
+      className={`space-y-2 w-full font-sans`}
     >
       <label className="font-semibold text-gray-800 text-base">{field.name}</label>
 
@@ -138,11 +134,7 @@ export function RecordRelationField({
             onChange={(e) => setQuantity(Number(e.target.value))}
             className="w-12 border border-gray-300 rounded-sm px-2 py-2 text-sm focus:ring-2 focus:ring-green-400"
           />
-          {selectedForField.length >= 1 && (
-            <button onClick={() => setShowSearch(false)}>
-              <X />
-            </button>
-          )}
+          
         </div>
       ) : null}
 
@@ -192,13 +184,6 @@ export function RecordRelationField({
                           {displayName}
                         </span>
                       </div>
-
-                      <button
-                        className="ml-auto text-green-600 text-sm px-2 py-1 border border-green-600 rounded-sm hover:bg-green-50"
-                        onClick={() => handleAddItem(rec)}
-                      >
-                        Adicionar 1
-                      </button>
                     </label>
                   );
                 })}
@@ -230,20 +215,72 @@ export function RecordRelationField({
 
             return (
               <div
-                key={item.recordId + idx}
-                className="flex justify-between items-center p-3"
-              >
-                <span className="font-medium text-gray-800">{displayName}</span>
+            key={item.recordId}
+            className="border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden"
+          >
+            <button
+              onClick={() =>
+                setOpenRelations((prev) => ({
+                  ...prev,
+                  [item.recordId]: !prev[item.recordId],
+                }))
+              }
+              className="w-full flex justify-between items-center px-4 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+            >
+              <span className="font-medium text-gray-700 dark:text-gray-200 truncate sm:max-w-[140px] md:max-w-[200px]">
+                {displayName}
+              </span>
+
+              <span className="text-gray-500 dark:text-gray-300">
+                {openRelations[item.recordId] ? "▲" : "▼"}
+              </span>
+            </button>
+
+            {openRelations[item.recordId] && (
+              <div className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+                {Object.entries(item.data || {}).map(([k, v]) => {
+                  if (k.startsWith("__")) return null;
+
+                  return (
+                    <div
+                      key={k}
+                      className="flex justify-between items-center p-3 border-b border-gray-100 dark:border-gray-800"
+                    >
+                      <span className="font-medium text-gray-800 dark:text-gray-200">
+                        {k}
+                      </span>
+
+                      <span className="text-gray-600 dark:text-gray-300">
+                        {String(v) === "0" ? "não" : String(v)}
+                      </span>
+                    </div>
+                  );
+                })}
+
+                {item.quantity !== undefined && (
+                  <div className="flex justify-between items-center p-3 border-b border-gray-100 dark:border-gray-800">
+                    <span className="font-medium text-gray-800 dark:text-gray-200">
+                      Quantidade
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-300">
+                      {item.quantity}
+                    </span>
+                  </div>
+                )}
 
                 {!onlyView && (
-                  <button
-                    className="text-red-600 hover:text-red-800"
-                    onClick={() => handleRemoveItem(idx)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex justify-end p-3">
+                    <button
+                      className="text-red-600 hover:text-red-800"
+                      onClick={() => handleRemoveItem(idx)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 )}
               </div>
+            )}
+          </div>
             );
           })}
         </div>

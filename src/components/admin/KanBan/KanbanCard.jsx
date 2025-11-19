@@ -299,7 +299,6 @@ function calculateField(field, recordData) {
 
 const [bgColor, setBgColor] = useState("#ffffffff"); // padrão escuro
 const [textColor, setTextColor] = useState("#000000ff");
-const [valueTextArea, setValueTextArea] = useState("");
   // Renderiza inputs personalizados
 const renderInput = (field) => {
   const value = formData[field.name] ?? recordData?.data?.[field.name] ?? "";
@@ -403,7 +402,9 @@ const renderInput = (field) => {
 
     if (field.field_type === 'textarea') {
     return (
-      <div className="space-y-2">
+      <div className="space-y-2"
+      disabled={onlyView}
+      >
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{field.name}</label>
           {/* Controles de cor */}
@@ -436,6 +437,7 @@ const renderInput = (field) => {
           backgroundColor: bgColor,
           color: textColor,
         }}
+        disabled={onlyView}
         spellCheck={false}
         className="
           w-full
@@ -573,7 +575,6 @@ const renderInput = (field) => {
   );
 };
 
-  console.log(record)
  useEffect(() => {
   if (record?.data) {
     setPreviewData({
@@ -830,7 +831,7 @@ const handleDescriptionChange = (value) => {
 
         {/* LABELS */}
         <div>
-          {canEdit &&<button
+          {canEdit && <button
             onClick={() => setOpenMenu(openMenu === 'labels' ? null : 'labels')}
             className="w-full flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border rounded-md text-sm"
           >

@@ -303,7 +303,7 @@ import { SplitButton } from "./components/buttonNewCard";
 
 
     // ------------------- DRAG & DROP -------------------
-    const onDragEnd = result => {
+    const onDragEnd = async(result) => {
       const { destination, source, draggableId } = result;
       if (!destination) return;
       if (destination.droppableId === source.droppableId && destination.index === source.index) return;
@@ -332,6 +332,25 @@ import { SplitButton } from "./components/buttonNewCard";
         ...prev,
         columns: { ...prev.columns, [newStart.id]: newStart, [newFinish.id]: newFinish }
       }));
+      // ------------------- ATUALIZA NO BANCO -------------------
+      try {
+        const { error } = await supabase
+          .from("kanban_cards")
+          .update({ step_id: finish.id })
+          .eq("id", draggableId);
+
+        if (error) console.error("Erro ao mover card:", error);
+      } catch (err) {
+        console.error(err);
+      }
+      // Salva 1 por 1 (Supabase não suporta batch nativo)
+        for (const item of updates) {
+          await supabase
+            .from("kanban_cards")
+            .update({ position: item.position })
+            .eq("id", item.id);
+        }
+
     };
 
 

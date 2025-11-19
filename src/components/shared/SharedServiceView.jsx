@@ -99,7 +99,6 @@ export default function SharedServiceView() {
 
 
 
-
           // 🧩 Campo de logo
           const logoFieldUser = configs?.find(
             (f) => f.field_origin === "user" && f.field_name.toLowerCase() === "logo"
@@ -133,11 +132,11 @@ export default function SharedServiceView() {
         setuserFieldsData(userFieldsData || [])
         
         //saber se é para enviar para kanban
-        if(formConfig.step_selected && formConfig.kanban_selected) {
+        if(formsConfigData.step_selected && formsConfigData.kanban_selected) {
           setSendForKanban(true)
         }
-        setStepSelect(formConfig.step_selected)
-        setKanbanSelect(formConfig.kanban_selected)
+        setStepSelect(formsConfigData.step_selected)
+        setKanbanSelect(formsConfigData.kanban_selected)
         setUser(userDb)
         setCompany(companieData);
         setSubmodule(sub);

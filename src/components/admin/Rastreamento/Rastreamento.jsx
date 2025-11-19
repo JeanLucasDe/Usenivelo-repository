@@ -9,6 +9,7 @@ import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 
 // Icons
 import { ArrowLeft, FormInput as FormInputIcon, Settings } from "lucide-react";
+import CardRastreio from "./CardRasteio";
 
 
 export default function Rastreamento() {
@@ -145,19 +146,20 @@ export default function Rastreamento() {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-4"
               >
-               {cardsSelected.length > 0 && cardsSelected.map((card)=> {
-  const { title } = card.data;
-  const etapa = steps.find(s => s.id === card.step_id);
+               {cardsSelected.length > 0 &&
+              cardsSelected
+              .map((card) => {
+                const etapa = steps.find((s) => s.id === card.step_id);
 
-  return (
-    <div key={card.id}>
-      <Button>
-        <h2>{title}</h2>
-      </Button>
-      <h3>Etapa: {etapa?.name ?? "—"}</h3>
-    </div>
-  );
-})}
+                return (
+                  <CardRastreio
+                    key={card.id}
+                    card={card}
+                    etapa={etapa}
+                  />
+                );
+              })}
+
 
               </motion.div>
             )}
