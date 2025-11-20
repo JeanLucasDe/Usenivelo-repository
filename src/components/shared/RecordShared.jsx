@@ -465,7 +465,7 @@ const handleChange = (name, value) => {
         placeholder="Digite..."
         onChange={(e) => {
           const val = e.target.value;
-          handleChange(field.name, field.field_type);
+          handleChange(field.name, val);
         }}
       />
     </div>
