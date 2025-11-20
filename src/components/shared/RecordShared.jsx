@@ -12,6 +12,7 @@ import FileInput from "../admin/Inputs/FileInput";
 import LimitReachedFullScreen from "../admin/SubmoduleCRUDconfig/templates/LimitReachedFullScreen";
 import { uploadFileToSupabase } from "@/lib/uploadFile";
 import { useNavigate } from "react-router-dom";
+import PhoneInput from "../admin/Inputs/PhoneInput";
 
 // --- Funções utilitárias --- //
 
@@ -234,6 +235,7 @@ const handleChange = (name, value) => {
 
     return (
       <div className="space-y-3">
+        <Label>{field.name}</Label>
         {relatedSubs.length > 0 && (
           <div className="grid sm:grid-cols-2 gap-2">
             {relatedSubs.map(sf => {
@@ -268,6 +270,19 @@ const handleChange = (name, value) => {
       </div>
     );
   }
+  if (field.field_type === 'textarea') {
+  return (
+    <div className="mb-4">
+      <Label>{field.name}{field.required && <span className="text-red-500"> *</span>}</Label>
+      <textarea
+        value={formData[field.name] ?? ""}
+        placeholder="Digite..."
+        onChange={(e) => handleChange(field.name, e.target.value)}
+        className="w-full min-h-[80px] rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 px-3 text-sm resize-y focus:ring-2 focus:ring-blue-500 pt-2"
+      />
+    </div>
+  )
+}
 
   // Campos do tipo etapas
   if (field.field_type === "etapas") {
@@ -285,32 +300,33 @@ const handleChange = (name, value) => {
 
   return (
     <div className="flex flex-col">
+      <Label>{field.name}</Label>
       {etapas.map((etapa, idx) => {
         const etapaVal = formData[etapa.name] ?? record?.data?.[etapa.name] ?? null;
         const isLast = idx === etapas.length - 1;
 
         return (
-          <div key={etapa.id} className="flex items-start gap-3 relative">
-            {/* Linha vertical */}
-            {!isLast && (
+          <div>
+            <div key={etapa.id} className="flex items-start gap-3 relative">
+              {/* Linha vertical */}
+              {!isLast && (
+                <div
+                  className={`absolute top-6 left-3 w-0.5 h-full ${
+                    etapaVal ? "bg-green-500" : "bg-gray-300"
+                  }`}
+                />
+              )}
+              {/* Bolinha */}
               <div
-                className={`absolute top-6 left-3 w-0.5 h-full ${
-                  etapaVal ? "bg-green-500" : "bg-gray-300"
+                onClick={() => handleEtapaChange(idx, !etapaVal)}
+                className={`w-6 h-6 rounded-full border-2 cursor-pointer flex items-center justify-center mt-1 transition-colors duration-200 cursor-pointer ${
+                  etapaVal ? "bg-green-500 border-green-500" : "bg-white border-gray-300"
                 }`}
-              />
-            )}
-
-            {/* Bolinha */}
-            <div
-              onClick={() => handleEtapaChange(idx, !etapaVal)}
-              className={`w-6 h-6 rounded-full border-2 cursor-pointer flex items-center justify-center mt-1 transition-colors duration-200 cursor-pointer ${
-                etapaVal ? "bg-green-500 border-green-500" : "bg-white border-gray-300"
-              }`}
-            >
+              >
+              </div>
+              {/* Nome da etapa */}
+              <span className="text-sm text-gray-700 mt-1">{etapa.name}</span>
             </div>
-
-            {/* Nome da etapa */}
-            <span className="text-sm text-gray-700 mt-1">{etapa.name}</span>
           </div>
         );
       })}
@@ -411,10 +427,32 @@ const handleChange = (name, value) => {
       </label>
     );
   }
+  if(field.field_type === 'phone') {
+    return (
+       <PhoneInput
+      label={field.name}
+      value={formData[field.name]}
+      required={field.required}
+      onChange={(val) => handleChange(field.name, val)}
+    />
+    )
+  }
 
   // File
   if (field.field_type === "file") {
     return <FileInput field={field} value={formData[field.name]} onChange={(val) => handleChange(field.name, val)} />;
+  }
+  if (field.field_type === "relation") {
+    return (
+      <RecordRelationField
+        key={field.id}
+        field={field}
+        relatedRecords={relatedRecords}
+        formData={formData}
+        setFormData={setFormData}
+      />
+    )
+    
   }
 
   // Inputs simples (text, number, date)
@@ -427,7 +465,7 @@ const handleChange = (name, value) => {
         placeholder="Digite..."
         onChange={(e) => {
           const val = e.target.value;
-          handleChange(field.name, field.field_type === "number" ? (val === "" ? null : Number(val)) : val);
+          handleChange(field.name, field.field_type);
         }}
       />
     </div>
@@ -602,15 +640,15 @@ const handleChange = (name, value) => {
       :
       !limiteAtingido ? (
       <div
-      className={`${!creating && 'fixed'} inset-0 z-50 flex items-center justify-center md:bg-black/50 md:backdrop-blur-sm md:transition-opacity duration-300 px-2 sm:px-0 sm:bg-gray-200 py-3`}
+      className={`${!creating && 'sm:relative md:fixed'} inset-0 z-50 flex items-center justify-center duration-300 px-2 sm:px-0 py-3 bg-blue-100`}
       onClick={onClose}
     >
       <div
-        className="relative dark:bg-gray-800 sm:shadow-2xl w-full max-w-4xl sm:rounded-sm transform transition-all duration-300 motion-safe:animate-fadeIn overflow-hidden shadow-lg bg-gray-100 "
+        className="relative dark:bg-gray-800 sm:shadow-2xl w-full max-w-2xl sm:rounded-sm transform transition-all duration-300 motion-safe:animate-fadeIn overflow-hidden shadow-md border border-gray-100 font-sans bg-white"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Conteúdo com rolagem */}
-        <div className={`${!creating && 'max-h-[90vh]'} overflow-y-auto px-4 sm:px-6  py-6 space-y-6 md:bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800`}>
+        <div className={`${!creating && 'md:max-h-[90vh]'} overflow-y-auto px-4 sm:px-6  py-6 space-y-6 md:bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800  `}>
           {!creating && <div className="flex justify-center items-center">
           {logoUrl ? (
             <div
@@ -647,165 +685,13 @@ const handleChange = (name, value) => {
           )}
 
          <div>
-  {(() => {
-    const output = [];
-    const processed = new Set();
-
-    for (let i = 0; i < sortedFields.length; i++) {
-      const field = sortedFields[i];
-      if (processed.has(field.id)) continue;
-
-      // 1) Campos "normais" (não formula, boolean, etapas, relation)
-      if (!["formula", "boolean", "etapas", "relation"].includes(field.field_type)) {
-        const normals = [];
-        let j = i;
-        while (
-          j < sortedFields.length &&
-          !["formula", "boolean", "etapas", "relation"].includes(sortedFields[j].field_type)
-        ) {
-          normals.push(sortedFields[j]);
-          processed.add(sortedFields[j].id);
-          j++;
-        }
-        i = j - 1;
-        output.push(
-          <div
-            key={`main-block-${i}`}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-4"
-          >
-            {normals.map((f) => (
-              <div key={f.id}>{renderInput(f)}</div>
-            ))}
-          </div>
-        );
-        continue;
-      }
-
-      // 2) Fórmulas — agrupa sequenciais e renderiza o bloco de fórmulas uma vez
-      if (field.field_type === "formula") {
-        const formulas = [];
-        let j = i;
-        while (j < sortedFields.length && sortedFields[j].field_type === "formula") {
-          formulas.push(sortedFields[j]);
-          processed.add(sortedFields[j].id);
-          j++;
-        }
-        i = j - 1;
-        output.push(
-          <div
-            key="formula-block"
-            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 sm:p-5 shadow-sm space-y-5 mb-4"
-          >
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-              <Calculator className="w-5 h-5 text-green-600" /> Fórmulas
-            </h3>
-
-            {formulas.map((f) => (
-              <div key={f.id}>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  {f.name}
-                </label>
-                {renderInput(f)}
-              </div>
-            ))}
-
-            <div className="flex items-center gap-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-              <span className="text-sm text-gray-700 dark:text-gray-300">Lembrar</span>
-              <button
-                onClick={() =>
-                  setEnabled((prev) => {
-                    const next = !prev;
-                    localStorage.setItem(ENABLE_KEY, JSON.stringify(next));
-                    return next;
-                  })
-                }
-                className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors ${
-                  enabled ? "bg-green-500" : "bg-gray-400"
-                }`}
-              >
-                <span
-                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-                    enabled ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button>
+          {sortedFields.map((field) => (
+            <div key={field.id} className="mb-4">
+              {renderInput(field)}
             </div>
-          </div>
-        );
-        continue;
-      }
+          ))}
 
-      // 3) Etapas — agrupa sequenciais
-      if (field.field_type === "etapas") {
-        const etapas = [];
-        let j = i;
-        while (j < sortedFields.length && sortedFields[j].field_type === "etapas") {
-          etapas.push(sortedFields[j]);
-          processed.add(sortedFields[j].id);
-          j++;
-        }
-        i = j - 1;
-        output.push(
-          <div
-            key={`etapas-block-${i}`}
-            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 sm:p-5 shadow-sm mb-4"
-          >
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-              <Layers className="w-5 h-5 text-blue-600" /> Etapas
-            </h3>
-            <div className="mt-4 space-y-4">
-              {etapas.map((f) => (
-                <div key={f.id}>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                    {f.name}
-                  </label>
-                  {renderInput(f)}
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-        continue;
-      }
-
-      // 4) Booleanos — agrupa sequenciais
-      if (field.field_type === "boolean") {
-        const booleans = [];
-        let j = i;
-        while (j < sortedFields.length && sortedFields[j].field_type === "boolean") {
-          booleans.push(sortedFields[j]);
-          processed.add(sortedFields[j].id);
-          j++;
-        }
-        i = j - 1;
-        output.push(
-          <div key={`boolean-block-${i}`} className="p-4 sm:p-5">
-            {booleans.map((f) => (
-              <div key={f.id}>{renderInput(f)}</div>
-            ))}
-          </div>
-        );
-        continue;
-      }
-
-      // 5) Relations — renderiza individualmente (mantém ordem)
-      if (field.field_type === "relation") {
-        processed.add(field.id);
-        output.push(
-          <RecordRelationField
-            key={field.id}
-            field={field}
-            relatedRecords={relatedRecords}
-            formData={formData}
-            setFormData={setFormData}
-          />
-        );
-        continue;
-      }
-    } // fim for
-
-    return output;
-  })()}
+  
         </div>
           {/* Rodapé fixo (salvar/fechar) */}
           <div className="sticky w-full dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 pt-3 pb-4 flex sm:flex-row items-center justify-end gap-3 sm:gap-2 px-4 sm:px-6">

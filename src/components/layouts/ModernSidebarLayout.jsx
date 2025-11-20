@@ -397,16 +397,11 @@ export default function ModernSidebarLayout({
         </div>
       </div>
       <div>
-        <MenuIcon className="absolute top-6 left-3 cursor-pointer block sm:block md:hidden"
-        onClick={()=> setOpenMenuMobile(true)}
-        />
         {/* MENU MOBILE */}
 <div className="md:hidden">
-  <MenuIcon
-    className="fixed top-6 left-3 cursor-pointer z-50 text-gray-800 dark:text-gray-100"
-    onClick={() => setOpenMenuMobile(true)}
+  <MenuIcon className="absolute top-6 left-3 cursor-pointer block sm:block md:hidden"
+  onClick={()=> setOpenMenuMobile(true)}
   />
-
   {openMenuMobile && (
     <div
       onClick={() => setOpenMenuMobile(false)}

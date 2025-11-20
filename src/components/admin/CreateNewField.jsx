@@ -15,7 +15,7 @@ export default function CreateNewField ({submoduleId, setCreateNewField,fetchFie
     name: '', field_type: 'text', hasFunction: false, subFields: [], operation: null, selectedSubFields: [],formula:''
     });
     const [showDocs, setShowDocs] = useState(false)
-    const FIELD_TYPES = ['text', 'phone','number', 'date', 'boolean', 'email', 'textarea', 'link', 'etapas','formula','select','relation','multiselect','file'];
+    const FIELD_TYPES = ['text', 'phone','number', 'date', 'boolean', 'email', 'textarea', 'link', 'etapas','formula','select','relation','multiselect','file','time'];
 
     const parseFormula = (formula) => {
     const operators = /[\+\-\*\/\(\)]/g;

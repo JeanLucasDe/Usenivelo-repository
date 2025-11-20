@@ -18,7 +18,7 @@ export default function AccountSettings() {
     const {moduleId, submoduleId }= useParams();
     const [module, setModule] = useState([])
     const [submodule, setSubmodule] = useState([])
-    const [activeTab, setActiveTab] = useState("confirm");
+    const [activeTab, setActiveTab] = useState("campos");
     const [loading, setLoading] = useState(false);
     const [fields, setFields] = useState([])
     const navigate = useNavigate();
@@ -83,7 +83,7 @@ export default function AccountSettings() {
   return (
     <>
     
-      <div className="mb-6 flex items-start gap-3">
+      <div className="mb-6 flex items-start gap-3 mt-5">
   {/* Botão de voltar */}
   <button
     onClick={() => navigate(-1)}
@@ -133,7 +133,7 @@ export default function AccountSettings() {
             onClick={() => setActiveTab("view_form")}
             className="w-full justify-start gap-2"
           >
-            <Clipboard size={16} /> Ver no Formulario
+            <Clipboard size={16} /> Ver na tabela
           </Button>
           <Button
             variant={activeTab === "compartilhar" ? "default" : "ghost"}
@@ -147,7 +147,7 @@ export default function AccountSettings() {
             onClick={() => setActiveTab("confirm")}
             className="w-full justify-start gap-2"
           >
-            <CheckCircle2 size={16} /> Confirmação
+            <CheckCircle2 size={16} /> Funções
           </Button>
          
         </CardContent>

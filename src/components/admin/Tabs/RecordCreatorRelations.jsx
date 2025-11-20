@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Trash2, X } from "lucide-react";
+import PixCopyCard from "./PixCopyCard";
 
 export function RecordRelationField({
   field,
@@ -81,7 +82,6 @@ export function RecordRelationField({
 
   const handleRemoveItem = (idx) => {
     setFormData((prev) => {
-      const updatedId = prev[field.id].filter((_, i) => i !== idx);
       const updatedName = prev[field.name].filter((_, i) => i !== idx);
       return {
         ...prev,
@@ -110,6 +110,13 @@ export function RecordRelationField({
       );
     });
   };
+  if (defaultConfig.defaultValue) {
+    return (
+      <div>
+        <PixCopyCard pixCode={defaultConfig.defaultValue} title={field.name}/>
+      </div>
+    )
+  }
 
   return (
     <div

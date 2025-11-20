@@ -43,7 +43,7 @@ export default function FileInput({ field, value, onChange }) {
       previewUrl.startsWith("data:image"));
 
   return (
-    <div className="flex flex-col border-b border-gray-200 py-3 px-3 mt-3 hover:bg-gray-50 transition w-full col-span-2">
+    <div className="flex flex-col border border-gray-300 py-3  mt-3 hover:bg-gray-50 transition w-full col-span-2 bg-white p-2 shadow-sm rounded-sm">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full">
         <span className="text-sm text-gray-900 mb-2 sm:mb-0">
           {field.name}{" "}

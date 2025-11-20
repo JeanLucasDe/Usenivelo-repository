@@ -7,9 +7,10 @@
   import { useNavigate } from "react-router-dom";
   import {useToast} from "@/components/ui/use-toast"
   import ShareDropdown from "./ShareDropdown";
-  import KanbanCard from "./KanbanCard";
+  import KanbanCardModal from "./KanbanCardModal";
   import { useDashboard } from '@/contexts/DashboardContext';
 import { SplitButton } from "./components/buttonNewCard";
+import KanbanCard from "./KanbanCard";
 
   const Modal = ({ isOpen, onClose, title, children, size='4xl' }) => {
     if (!isOpen) return null;
@@ -704,187 +705,30 @@ const handleRenameStep = async (stepId) => {
                     </div>
 
                     {/* CARDS */}
-                    
-                    {column.cardIds.map((cardId, index) => {
-  const card = cardsData[cardId];
-  return (
-    <Draggable
-      key={card.id}
-      draggableId={card.id}
-      index={index}
-      isDragDisabled={!canMoveStep}
-    >
-      {(provided) => {
-        const d = card.data || {};
-        const title = d.title;
-        const subtitle = d.description;
+                    {column.cardIds.map((cardId, index) => (
+                    <KanbanCard
+                      key={cardId}
+                      card={cardsData[cardId]}
+                      index={index}
+                      canMoveStep={canMoveStep}
+                      usuarios={usuarios}
+                      companies={companies}
+                      submodules={submodules}
+                      step={step}
+                      canView={canView}
+                      canEdit={canEdit}
+                      canDelete={canDelete}
+                      openMenuCardId={openMenuCardId}
+                      setOpenMenuCardId={setOpenMenuCardId}
+                      selectSubmoduleButton={selectSubmoduleButton}
+                      setRecord={setRecord}
+                      setCanEdit={setCanEdit}
+                      setOnlyView={setOnlyView}
+                      handleReloadKanban={handleReloadKanban}
+                      supabase={supabase}
+                    />
+                  ))}
 
-        const creatorCard = usuarios.find((user) => user.id === card.created_by);
-        const CompanieCreator = companies.find((comp) => comp.id === creatorCard?.company_id);
-        const avatar = CompanieCreator?.logo;
-        const date = card.created_at;
-
-        
-
-        return (
-          <div
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            {...provided.dragHandleProps}
-            className="group relative p-3 rounded-md border border-gray-200 bg-white shadow-sm hover:shadow-md transition cursor-pointer select-none flex flex-col justify-between space-y-2 ml-2 mr-2"
-            
-          >
-            {/* Top: avatar + menu */}
-            <div className="flex justify-between items-start">
-              <div>
-                {avatar ? (
-                  <img
-                    src={avatar}
-                    className="w-9 h-9 rounded-full object-cover"
-                    alt="avatar"
-                  />
-                ) : (
-                  <div className="w-6 h-6 border border-gray-200 rounded-full">
-                    <User/>
-                  </div>
-                )}
-              </div>
-               {/* Data */}
-             {date && (
-              <div className="truncate max-w-[130px] self-start px-2 py-0.5 rounded-md bg-green-100 text-green-800 text-xs">
-                {formatISODate(date)}
-              </div>
-            )}
-
-
-              {/* Menu três pontinhos */}
-              <div className="relative">
-                <button
-                  className="p-1 hover:bg-gray-100 rounded"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setOpenMenuCardId(prev => prev === card.id ? null : card.id);
-                  }}
-                >
-                  <MoreVertical className="w-4 h-4 text-gray-500" />
-                </button>
-
-                {openMenuCardId === card.id && (
-                  <div
-                    className="absolute right-0 mt-1 w-28 bg-white border border-gray-200 shadow-lg rounded-md z-50"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {canView && (
-                      <button
-                        className="text-left w-full px-3 py-2 hover:bg-gray-100"
-                        onClick={() => {
-                          const sub = submodules.find(i => i.id === card?.submodule_id);
-                          selectSubmoduleButton(sub ? sub : 'main', step.id);
-                          setRecord({ data: card?.data, ...card });
-                          setOpenMenuCardId(null);
-                          setOnlyView(true);
-                        }}
-                      >
-                        Ver
-                      </button>
-                    )}
-                    {canEdit && (
-                      <button
-                        className="text-left w-full px-3 py-2 hover:bg-gray-100"
-                        onClick={() => {
-
-                          const sub = submodules.find(i => i.id === card?.submodule_id)
-                          console.log(sub)
-                          selectSubmoduleButton(sub, step.id);
-                          setRecord({ data: card?.data, ...card });
-                          setCanEdit(true);
-                          setOpenMenuCardId(null);
-                          setOnlyView(false);
-                        }}
-                      >
-                        Editar
-                      </button>
-                    )}
-                    {canDelete && (
-                      <button
-                        className="text-left w-full px-3 py-2 hover:bg-gray-100 text-red-500"
-                        onClick={async () => {
-                          try {
-                            const { error: errCard } = await supabase
-                              .from("kanban_cards")
-                              .delete()
-                              .eq("id", card.id);
-                            if (errCard) throw errCard;
-
-                            if (card.record_id) {
-                              await supabase
-                                .from("submodule_records")
-                                .delete()
-                                .eq("id", card.record_id);
-                            }
-
-                            setOpenMenuCardId(null);
-                            handleReloadKanban();
-                          } catch (error) {
-                            console.error("Erro ao deletar card:", error);
-                            alert("Erro ao deletar card.");
-                          }
-                        }}
-                      >
-                        Deletar
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Título e Subtítulo */}
-            <div className="flex flex-col w-full space-y-2">
-              <div className="flex flex-col space-y-3 flex-1 min-w-0">
-                <div className="text-sm font-bold text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis w-full mt-3">{title}</div>
-                {subtitle && (
-                  <div className="text-xs text-gray-500 truncate max-w-[200px] whitespace-nowrap overflow-hidden text-ellipsis mt-1 w-full">{subtitle}</div>
-                )}
-              </div>
-
-            {/* Rodapé estilo Trello */}
-              <div className="flex items-center pt-0.5 border-t space-x-1 mt-0.5">
-
-              <div className="flex items-center gap-2 mt-2 text-xs text-gray-600 ">
-                {/* Comentários */}
-                <div className="flex items-center gap-1 text-xs text-gray-600">
-                  <span className="flex items-center gap-1">💬 {card.data?.comments?.length || 0}</span>
-                </div>
-                  {/* Checklist */}
-                <div className="flex text-xs text-gray-600">
-                  ✅ {card.data?.checklist?.filter(i => i.done).length || 0}/{card.data?.checklist?.length || 0}
-                </div>
-              </div>
-            </div>
-              
-
-              {/* Labels */}
-              <div className="flex gap-1 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                {card.data?.labels?.map((label, idx) => (
-                  <span
-                    key={idx}
-                    className="text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap"
-                    style={{ backgroundColor: label.color, color: "#fff" }}
-                  >
-                    {label.name}
-                  </span>
-                ))}
-              </div>
-
-              
-            </div>
-          </div>
-        );
-      }}
-    </Draggable>
-  );
-})}
 
 
 
@@ -904,7 +748,7 @@ const handleRenameStep = async (stepId) => {
           onClose={() => setOpenRecordModal(false)}
           title=""
         >
-          <KanbanCard fields={selectFields} subFields={selectSubFields} submodule_id={submoduleId} onClose={() => setOpenRecordModal(false)} isOpen={openRecordModal} creating={true} submoduleName={submoduleName} 
+          <KanbanCardModal fields={selectFields} subFields={selectSubFields} submodule_id={submoduleId} onClose={() => setOpenRecordModal(false)} isOpen={openRecordModal} creating={true} submoduleName={submoduleName} 
           kanban={true} created_by={user.id} position={1} step_id={stepSelect} handleReloadKanban={handleReloadKanban} record={record} canEdit={canEdit} onlyView={onlyView} usuarios={usuarios} companies={companies}/>
         </Modal>
         {/**Open Create Step */}
