@@ -1,5 +1,5 @@
 // RecordCreatorRelations.jsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Trash2, X } from "lucide-react";
 import PixCopyCard from "./PixCopyCard";
@@ -9,6 +9,7 @@ export function RecordRelationField({
   relatedRecords,
   formData,
   setFormData,
+  handleChange,
   canEdit,
   kanban,
   onlyView,
@@ -19,12 +20,17 @@ export function RecordRelationField({
   const [searchQuery, setSearchQuery] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [showSearch, setShowSearch] = useState(true);
+  
   const [openRelations, setOpenRelations] = useState(false)
 
   // SELEÇÃO MÚLTIPLA
   const [selectedBatch, setSelectedBatch] = useState({}); // rec.id -> true/false
 
   const defaultConfig = field.relatedConfigs?.find((rc) => rc.defaultValue);
+
+  useEffect(() => {
+    handleChange && handleChange(field.name, selectedForField);
+  }, [selectedForField]); // Dispara toda vez que a seleção muda
 
 
   const hasPriceField =

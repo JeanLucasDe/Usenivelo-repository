@@ -44,6 +44,7 @@ export default function KanbanCardModal({ fields = [], subFields = [], submodule
     checklist: [],
     comments:[]
     });
+
    useEffect(() => {
     if (record) {
       setRecordsData(record); // atualiza recordData com o record atual
@@ -233,7 +234,9 @@ function calculateField(field, recordData) {
     ? JSON.parse(localStorage.getItem(LOCAL_CACHE_KEY)) || {}
     : {};
     // Evita sobrescrever o estado se nada mudou
-    const init = { ...(record?.data || {}), ...localCache, ...prev };
+   
+    const init = { ...(record?.data || {}), ...localCache};
+
 
     fields.forEach(f => {
       if (init[f.name] === undefined) {
@@ -251,9 +254,11 @@ function calculateField(field, recordData) {
     const changed = JSON.stringify(prev) !== JSON.stringify(init);
     return changed ? init : prev;
   });
+  console.log(formData)
   fetchFormConfig()
   setLoading(false)
   }, []);
+
   // Recalcula fórmulas dinamicamente e salva valores no cache (fórmulas + subfields)
   useEffect(() => {
     if (!fields?.length || !submodule_id) return;
@@ -274,27 +279,28 @@ function calculateField(field, recordData) {
 
 
 
-  // Atualiza valor
   const handleChange = (name, value) => {
-  setFormData(prev => {
-    const nextFormData = { ...prev, [name]: value };
+    setFormData(prev => {
+      const nextFormData = { ...prev, [name]: value };
 
-    // Atualiza previewData preservando title/description/etc
-    const updatedPreview = {
-      ...previewData, // mantém title, description, labels etc
-      ...nextFormData // atualiza campos de formulário
-    };
+      setPreviewData(prevPreview => {
+        const updatedPreview = {
+          ...prevPreview, // mantém title/description/labels
+          ...nextFormData // atualiza campos de formData
+        };
 
-    // Recalcula fórmulas automaticamente
-    const formulaFields = fields.filter(f => f.field_type === "formula");
-    formulaFields.forEach(f => {
-      updatedPreview[f.name] = calculateField(f, updatedPreview) ?? 0;
+        // recalcula fórmulas
+        fields.filter(f => f.field_type === "formula").forEach(f => {
+          updatedPreview[f.name] = calculateField(f, updatedPreview) ?? 0;
+        });
+
+        return updatedPreview;
+      });
+
+      return nextFormData;
     });
+  };
 
-    setPreviewData(updatedPreview);
-    return nextFormData;
-  });
-};
 
 
 const [bgColor, setBgColor] = useState("#ffffffff"); // padrão escuro
@@ -534,6 +540,7 @@ const renderInput = (field) => {
       <RecordRelationField
       field={field}
       relatedRecords ={relatedRecords}
+      handleChange={handleChange}
       formData={formData}
       setFormData={setFormData} 
       kanban={kanban}

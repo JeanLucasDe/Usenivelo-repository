@@ -447,9 +447,11 @@ const renderInput = (field) => {
     const payloadData = {
       ...merged,
       // se usar extras (labels/checklist/comments) para kanban/card, junte aqui:
-      labels: kanban && cardExtras?.labels || currentBase.labels || [],
-      checklist: kanban && cardExtras?.checklist || currentBase.checklist || [],
-      comments:  kanban && cardExtras?.comments || currentBase.comments || [],
+     ...(kanban && {
+        labels: cardExtras?.labels || currentBase.labels || [],
+        checklist: cardExtras?.checklist || currentBase.checklist || [],
+        comments: cardExtras?.comments || currentBase.comments || [],
+      }),
     };
 
     const payload = { data: payloadData };

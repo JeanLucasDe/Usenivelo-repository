@@ -94,7 +94,7 @@ export default function SharedServiceView() {
             .select('*')
             .eq("user_id", userDb.id)
             .eq("submodule_id", sub_id)
-            .single()
+            .maybeSingle();
           if (formsConfigError) throw subError;
 
 
@@ -131,20 +131,42 @@ export default function SharedServiceView() {
         setcompanyFieldsData(companyFieldsData || [])
         setuserFieldsData(userFieldsData || [])
         
-        //saber se é para enviar para kanban
-        if(formsConfigData.step_selected && formsConfigData.kanban_selected) {
-          setSendForKanban(true)
+       if (formsConfigData) {
+          // Saber se é para enviar para kanban
+          if (formsConfigData.step_selected && formsConfigData.kanban_selected) {
+            setSendForKanban(true);
+          } else {
+            setSendForKanban(false);
+          }
+
+          setStepSelect(formsConfigData.step_selected || null);
+          setKanbanSelect(formsConfigData.kanban_selected || null);
+          setFormConfig(formsConfigData);
+          setForm_type(formsConfigData.form_type || "default"); // caso não tenha definido ainda
+        } else {
+          // Usuário novo ou sem configuração → inicializa defaults
+          setSendForKanban(false);
+          setStepSelect(null);
+          setKanbanSelect(null);
+          setFormConfig({
+            user_id: userDb.id,
+            submodule_id: sub_id,
+            step_selected: null,
+            kanban_selected: null,
+            form_type: "default",
+          });
+          setForm_type("default");
         }
-        setStepSelect(formsConfigData.step_selected)
-        setKanbanSelect(formsConfigData.kanban_selected)
-        setUser(userDb)
+
+        // Continua com os dados do usuário e submódulo
+        setUser(userDb);
         setCompany(companieData);
         setSubmodule(sub);
         setSubFields(subFieldsData || []);
         setFields(fieldsData || []);
         setValidated(true);
-        setFormConfig(formsConfigData)
-        setForm_type(formsConfigData.length && formsConfigData.form_type)
+
+        
       } catch (err) {
         console.error(err);
         setError(err.message || "Erro inesperado ao carregar dados.");

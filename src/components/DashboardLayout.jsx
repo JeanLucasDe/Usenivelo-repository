@@ -60,11 +60,13 @@ const DashboardLayout = ({ children }) => {
     // 1️⃣ Usuário logado
     const { data: authData } = await supabase.auth.getUser();
     const user = authData?.user;
+    console.log(authData)
     if (!user) return;
 
     const { data: dbUsuarios } = await supabase
     .from("users")
     .select("*")
+
     const { data: dbCompanies } = await supabase
     .from("companies")
     .select("*")
@@ -98,11 +100,6 @@ const DashboardLayout = ({ children }) => {
         .is("company_id", null)
         .order("id", { ascending: true }),
     ]);
-
-    // 5️⃣ Buscar permissões de KanBan do usuário
-    const { data: kanbanPerms } = await supabase
-      .from("user_permissions_kanban")
-      .select("*")
 
     // 6️⃣ Buscar todos os steps e permissões de steps
     const { data: stepsData } = await supabase
@@ -193,22 +190,24 @@ const DashboardLayout = ({ children }) => {
 
 
 
-
-
-
-
-
-
     // 8️⃣ Remover módulos padrão duplicados
     const customNames = new Set(customRes.data.map((m) => m.name));
+
+    // Sempre incluir os módulos padrão para novos usuários
     const filteredDefault = defaultRes.data.filter(
       (m) => !customNames.has(m.name)
     );
 
     // 9️⃣ Montar menu final
-    const items = [...mapModules(customRes.data), ...mapModules(filteredDefault)];
+    const items = [
+      ...(customRes.data.length ? mapModules(customRes.data) : []),
+      ...mapModules(filteredDefault)
+    ];
     setMenuItems(items);
+
+
     setEtapas(steps)
+
   } catch (err) {
     console.error("Erro ao carregar módulos:", err);
     toast({

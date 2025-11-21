@@ -1,101 +1,200 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
-export default function CardRastreio({ card, etapa }) {
+export default function CardRastreio({ card, etapa, user, onAddComment }) {
+  const [newComment, setNewComment] = useState("");
+
   const title = card.data?.title;
+  const comments = card.data?.comments || [];
+
+  // Formatador de labels bonitinhos
+  const formatLabel = (text) => {
+    return text
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (l) => l.toUpperCase());
+  };
 
   return (
-   <div className="p-4 border border-card-border rounded-lg shadow-sm bg-card hover:shadow-md transition-all duration-200">
-  {/* Header with title and stage */}
-  <div className="flex items-center gap-3 mb-3">
-    <h2 className="font-semibold text-lg text-foreground">{title}</h2>
-    <div className="h-4 w-px bg-divider" />
-    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
-      {etapa?.name ?? "—"}
-    </span>
-  </div>
+    <div className="p-5 border rounded-xl bg-card shadow-sm hover:shadow-md transition-all duration-200">
 
-  <div className="h-px bg-divider mb-4" />
+      {/* HEADER */}
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="font-semibold text-lg text-foreground">
+            {title || "Sem título"}
+          </h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            ID: {card.id}
+          </p>
+        </div>
 
-  {/* Data fields */}
-  <div className="space-y-4">
-    {Object.entries(card.data)
-      .filter(([key]) => key !== "title" && !key.startsWith("_"))
-      .map(([key, value]) => {
-        // 🔸 Array (relations)
-        if (Array.isArray(value)) {
-          return (
-            <div key={key} className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground capitalize">
-                {key}
-              </label>
+        <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+          {etapa?.name ?? "Sem etapa"}
+        </span>
+      </div>
 
-              {value.length === 0 ? (
-                <p className="text-sm text-muted-foreground italic pl-3">
-                  Nenhum item
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {value.map((item, index) => (
-                    <div
-                      key={item.recordId || index}
-                      className="border border-nested-border rounded-md p-3 bg-nested-item hover:bg-muted/50 transition-colors"
-                    >
-                      {/* Item title */}
-                      
-                      <p className="font-medium text-sm text-foreground mb-2">
-                        {item.data?.nome ||
-                          item.data?.name ||
-                          item.data?.titulo ||
-                          item.data?.modelo ||
-                          `Item ${index + 1}`}
-                      </p>
+      <div className="h-px bg-border mb-4" />
 
-                      {/* Item fields */}
-                      <div className="space-y-1.5 pl-2 border-l-2 border-divider">
-                        {Object.entries(item.data || {}).map(([k, v]) => {
-                          if (k.startsWith("__")) return null;
-                          return (
-                            <div key={k} className="flex items-baseline gap-2">
-                              <span className="text-xs font-medium text-muted-foreground capitalize min-w-[80px]">
-                                {k}:
-                              </span>
-                              <span className="text-xs text-foreground">
-                                {String(v)}
-                              </span>
-                            </div>
-                          );
-                        })}
+      {/* CONTENT */}
+     <div className="space-y-5">
+  {Object.entries(card.data)
+    .filter(([key, value]) => 
+      key !== "title" &&
+      key !== "submodule_id" &&
+      key !== "comments" &&
+      key !== "labels" &&
+      !key.startsWith("_") &&
+      // ❌ filtra valores "vazios"
+      value !== 0 && 
+      value !== "" &&
+      value !== null &&
+      value !== undefined &&
+      !(Array.isArray(value) && value.length === 0)
+    )
+    .map(([key, value]) => {
+      const label = formatLabel(key);
 
-                        {/* Quantity badge */}
-                        {item.quantity !== undefined && (
-                          <div className="flex items-baseline gap-2 mt-2 pt-2 border-t border-divider">
-                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-accent text-accent-foreground">
-                              Quantidade: {item.quantity}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        }
-
-        // 🔸 Simple value
+      // 🔵 CHECKLIST
+      if (
+        Array.isArray(value) &&
+        value.length > 0 &&
+        typeof value[0] === "object" &&
+        "checked" in value[0]
+      ) {
         return (
-          <div key={key} className="flex items-baseline gap-3">
-            <span className="text-sm font-medium text-muted-foreground capitalize min-w-[100px]">
-              {key}:
-            </span>
-            <span className="text-sm text-foreground">{String(value)}</span>
+          <div key={key} className="space-y-2">
+            <h3 className="text-sm font-medium text-muted-foreground">
+              {label}
+            </h3>
+
+            <div className="space-y-1">
+              {value.map((item, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <input type="checkbox" className="h-4 w-4" checked={item.checked} readOnly />
+                  <span className="text-sm">{item.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
         );
-      })}
-  </div>
+      }
+
+      // 🔵 ARRAY (nested items)
+      if (Array.isArray(value)) {
+        return (
+          <div key={key} className="space-y-2">
+            <h3 className="text-sm font-medium text-muted-foreground">{label}</h3>
+            <div className="space-y-3">
+              {value.map((item, index) => (
+                <div
+                  key={item.recordId || index}
+                  className="border rounded-lg p-3 bg-muted/40 hover:bg-muted/60 transition-colors"
+                >
+                  <p className="text-xs p-3">
+                    <strong>ID:</strong> {item.recordId || index}
+                  </p>
+                  <div className="pl-3 border-l border-border space-y-1">
+                    {Object.entries(item.data || {})
+                      .filter(([k, v]) => 
+                        ["nome", "name", "titulo", "modelo"].includes(k.toLowerCase()) &&
+                        v !== 0 && v !== "" && v !== null && v !== undefined
+                      )
+                      .map(([k, v]) => (
+                        <p key={k} className="text-xs">
+                          <strong>{formatLabel(k)}:</strong> {String(v)}
+                        </p>
+                      ))}
+                    {item.quantity !== undefined && item.quantity !== 0 && (
+                      <p className="text-xs font-medium mt-2">
+                        Quantidade: {item.quantity}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // 🔵 VALOR SIMPLES — com label
+      return (
+        <div key={key}>
+          <p className="text-xs font-medium text-muted-foreground">{label}</p>
+          <p className="text-sm">{String(value)}</p>
+        </div>
+      );
+    })}
 </div>
 
+
+      {/* ---------------------- COMMENTS ---------------------- */}
+
+      <div className="h-px bg-border my-4" />
+
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-muted-foreground">
+          Comentários
+        </h3>
+
+        {/* lista de comentários */}
+        {comments.map((c, index) => (
+          <div
+            key={index}
+            className="p-3 bg-muted/40 rounded-lg border text-sm"
+          >
+            <p className="font-medium">{c.name}</p>
+            <p className="mt-1">{c.message}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {new Date(c.created_at).toLocaleString()}
+            </p>
+          </div>
+        ))}
+
+        {/* adicionar comentário */}
+        <div className="mt-4 space-y-2">
+          <Textarea
+            placeholder="Adicionar comentário..."
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+          />
+
+          <Button
+            className="w-full"
+            disabled={!newComment.trim()}
+            onClick={async () => {
+              if (!newComment.trim()) return;
+
+              let userData = user;
+              
+              // Se não estiver vindo do prop, busca no supabase
+              if (!userData) {
+                const { data: authData } = await supabase.auth.getUser();
+                userData = authData?.user;
+              }
+
+              const newEntry = {
+                id: userData?.id,
+                name: userData?.user_metadata?.email || "Usuário",
+                message: newComment.trim(),
+                created_at: new Date().toISOString(),
+              };
+
+              // Passa pro handler do pai (onde você pode salvar no banco ou apenas atualizar local)
+              onAddComment(newEntry);
+
+              // Limpa textarea
+              setNewComment("");
+            }}
+          >
+            Enviar comentário
+          </Button>
+
+        </div>
+      </div>
+
+    </div>
   );
 }

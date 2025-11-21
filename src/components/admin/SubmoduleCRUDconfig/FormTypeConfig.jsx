@@ -300,7 +300,9 @@ export default function FormTypeConfig() {
                     setKanbanSelect(selectedObj);
                   }}
                 >
-                  <option value={selectedKanban.id}>{!kanbanSelect.length ? selectedKanban.name : 'Selecione...'}</option>
+                  <option value={selectedKanban?.id ?? ""}>
+                    {selectedKanban?.name ?? "Selecione..."}
+                  </option>
                   {kanbans
                   .filter((kan)=> kan.kanban)
                   .map((kan) => (
@@ -314,7 +316,7 @@ export default function FormTypeConfig() {
 
             {/**selecionar etapa */}
             <div>
-              <Label>Selecione a etapa:</Label>
+              <Label>Selecione a etapa:(public)</Label>
                <select
                 className="bg-white shadow-md p-2 w-full border border-gray-200 rounded-md"
                 value={stepSelect?.id ?? ""}
@@ -324,8 +326,9 @@ export default function FormTypeConfig() {
                   setStepSelect(selectedObj);
                 }}
               >
-                <option value={selectedStep.id}>{!stepSelect.length ? selectedStep.name : 'Selecione...'}</option>
-
+                <option value={selectedStep?.id ?? ""}>
+                  {selectedStep?.name ?? "Selecione..."}
+                </option>
                 {steps
                 .filter((step)=> step.kanban_id === kanbanSelect.id && step.public)
                 .map((kan) => (

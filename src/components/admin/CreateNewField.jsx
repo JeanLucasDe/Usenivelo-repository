@@ -44,6 +44,9 @@ export default function CreateNewField ({submoduleId, setCreateNewField,fetchFie
           return;
       }
     try {
+
+        const position = fields.length > 0 ? fields.length + 1 : 0
+
         const { data: fieldData, error: insertError } = await supabase
         .from('submodule_fields')
         .insert([{
@@ -54,7 +57,8 @@ export default function CreateNewField ({submoduleId, setCreateNewField,fetchFie
           operation: newField.operation,
           relatedConfigs: newField.relatedConfigs,
           limit: newField.limit,
-          show_in_table:true
+          show_in_table:true,
+          order: position
         }])
         .select()
         .single();

@@ -36,6 +36,7 @@ import RecordCreator from "./RecordCreator"
 import AlertsWithInvoiceModal from "./AlertsWithInvoiceModal";
 import Joyride from "react-joyride";
 import MonthYearNavigator from "./FinancesComponents/MonthYearNavigator";
+import TransactionAIChat from "./IA/Finances/TransactionAIChat";
 
 
 const MyFinancesPage = () => {
@@ -525,7 +526,6 @@ const fetchFields = async () => {
           </div>
         </div>
       </motion.div>
-     
       {!openSettings ?
       <>
        <div className="flex justify-start mt-6">

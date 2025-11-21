@@ -550,7 +550,7 @@ const camposDoCard = Array.from(camposSet);
     </Button>
   </div>
   {/* Botões do proprietário */}
-  {user.id === kanban.user_id && (
+  
     <div className="flex items-center mt-2 sm:mt-0 space-x-2 flex-wrap">
 
        <CalendarioRangeDropdown
@@ -568,6 +568,8 @@ const camposDoCard = Array.from(camposSet);
           setActiveFilter(filter);
         }}
       />
+     {user.id === kanban.user_id && ( 
+      <>
       <ShareDropdown
         shared={kanban.share}
         onOpenShareModal={() => setShareModalOpen(true)}
@@ -586,8 +588,10 @@ const camposDoCard = Array.from(camposSet);
       >
         <Settings className="w-4 h-4" />
       </Link>
+      </>
+    )}
     </div>
-  )}
+  
 </div>
 
 

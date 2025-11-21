@@ -134,7 +134,7 @@ export default function AccountSettings() {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col md:flex-row gap-6 mx-auto "
+      className="flex flex-col md:flex-row gap-6 mx-auto pt-6"
     >
 
       {/* Sidebar */}
@@ -163,13 +163,6 @@ export default function AccountSettings() {
             className="w-full justify-start gap-2"
           >
             <MapPin size={16} /> Endereço
-          </Button>
-          <Button
-            variant={activeTab === "permissoes" ? "default" : "ghost"}
-            onClick={() => setActiveTab("permissoes")}
-            className="w-full justify-start gap-2"
-          >
-            <ShieldCheck size={16} /> Permissões
           </Button>
           <Button
             variant={activeTab === "plan" ? "default" : "ghost"}
@@ -347,9 +340,6 @@ export default function AccountSettings() {
             </motion.div>
           )}
 
-          {activeTab === "permissoes" && (
-            <PermissionsTab/>
-          )}
           {activeTab === "plan" && (
            <CurrentPlanCard
             user={userData}

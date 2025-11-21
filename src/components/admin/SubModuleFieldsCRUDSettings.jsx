@@ -133,7 +133,7 @@ export default function AccountSettings() {
             onClick={() => setActiveTab("view_form")}
             className="w-full justify-start gap-2"
           >
-            <Clipboard size={16} /> Ver na tabela
+            <Clipboard size={16} /> Ver no form
           </Button>
           <Button
             variant={activeTab === "compartilhar" ? "default" : "ghost"}
