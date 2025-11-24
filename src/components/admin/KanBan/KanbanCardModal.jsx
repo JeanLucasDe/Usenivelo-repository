@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/customSupabaseClient";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, AlignLeft, Calculator, CheckSquare, FileText, Layers, Loader2, Plus, Tag, Trash2, Upload, UserPlus, X } from "lucide-react";
+import { AlertCircle, AlignLeft, Calculator, CheckSquare, FileText, Layers, Loader2, Plus, PlusCircle, Tag, Trash2, Upload, UserPlus, X } from "lucide-react";
 import { useToast } from '@/components/ui/use-toast';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ import ConfirmationTemplate from "../SubmoduleCRUDconfig/templates/ConfirmationT
 import FileInput from "../Inputs/FileInput";
 import LimitReachedFullScreen from "../SubmoduleCRUDconfig/templates/LimitReachedFullScreen";
 import { RecordRelationField } from "../Tabs/RecordCreatorRelations";
+import ExtraFields from "./components/LocalFieldsEditor";
 
 // --- Funções utilitárias --- //
 
@@ -36,7 +37,6 @@ export default function KanbanCardModal({ fields = [], subFields = [], submodule
     const [user, setUser] = useState(null);
     const [company, setCompany] = useState(null);
     const [newLabelColor, setNewLabelColor] = useState("#3498db");
-
 
     const [cardExtras, setCardExtras] = useState({
     members: [],
@@ -218,12 +218,29 @@ function calculateField(field, recordData) {
     });
   };
 
-  const sortedFields = [...fields].sort((a, b) => {
-    if (a.order == null && b.order == null) return 0;
-    if (a.order == null) return 1;
-    if (b.order == null) return -1;
-    return a.order - b.order;
-  });
+  // Campos a ignorar
+    const ignoreFields = ["title", "checklist", "labels", "comments", "description"];
+
+    // Se fields estiver vazio, pegar do record.data
+    const baseFields = fields.length > 0 
+      ? fields 
+      : Object.keys(record?.data || {})
+          .filter((key) => !ignoreFields.includes(key)) // ignora os campos indesejados
+          .map((key, index) => ({
+            id: `auto-${index}`,   // gerar um id temporário
+            name: key,
+            order: index,
+            field_type: typeof record.data[key] === "number" ? "number" : "text", // inferir tipo básico
+          }));
+
+    const sortedFields = [...baseFields].sort((a, b) => {
+      if (a.order == null && b.order == null) return 0;
+      if (a.order == null) return 1;
+      if (b.order == null) return -1;
+      return a.order - b.order;
+    });
+
+
 
   // Inicializa valores padrão
   useEffect(() => {
@@ -254,7 +271,6 @@ function calculateField(field, recordData) {
     const changed = JSON.stringify(prev) !== JSON.stringify(init);
     return changed ? init : prev;
   });
-  console.log(formData)
   fetchFormConfig()
   setLoading(false)
   }, []);
@@ -600,7 +616,7 @@ const handleDescriptionChange = (value) => {
       labels: cardExtras.labels,
       checklist: cardExtras.checklist,
       comments: cardExtras.comments,
-      submodule_id:submodule_id
+      ...(submodule_id ? { submodule_id } : {}), // só adiciona se tiver valor
     };
 
     const payload = { data: payloadData };
@@ -610,10 +626,8 @@ const handleDescriptionChange = (value) => {
       const updateData = {
         ...payload,
         updated_at: new Date().toISOString(),
+        ...(submodule_id ? { submodule_id } : {}), // só adiciona se tiver valor
       };
-
-      // Só adiciona submodule_id se existir
-      if (submodule_id) updateData.submodule_id = submodule_id;
 
       const { error } = await supabase
         .from("submodule_records")
@@ -621,9 +635,14 @@ const handleDescriptionChange = (value) => {
         .eq("id", kanban ? record.record_id : record.id);
 
       if (kanban) {
+        const kanbanUpdate = {
+          ...updateData,
+          ...(submodule_id ? { submodule_id } : {}),
+        };
+
         const { error: errKanban } = await supabase
           .from("kanban_cards")
-          .update(updateData)
+          .update(kanbanUpdate)
           .eq("id", record.id);
 
         if (errKanban) throw errKanban;
@@ -644,13 +663,14 @@ const handleDescriptionChange = (value) => {
       // === CRIAR NOVO REGISTRO ===
       let recordResult = null;
 
+      // Cria registro principal se houver submodule_id
       if (submodule_id) {
         const { data: newRecord, error } = await supabase
           .from("submodule_records")
           .insert([
             {
-              submodule_id, // só envia se existir
               ...payload,
+              submodule_id, // só adiciona se tiver valor
               created_at: new Date().toISOString(),
             },
           ])
@@ -660,19 +680,21 @@ const handleDescriptionChange = (value) => {
         if (error) throw error;
         recordResult = newRecord;
       }
+
+      // Cria card do kanban
       if (kanban) {
+        const kanbanPayload = {
+          step_id,
+          ...payload,
+          created_by,
+          position,
+          ...(submodule_id ? { submodule_id } : {}), // só adiciona se tiver valor
+          ...(recordResult?.id ? { record_id: recordResult.id } : {}), // só adiciona se tiver valor
+        };
+
         const { data: dataCard, error } = await supabase
           .from("kanban_cards")
-          .insert([
-            {
-              step_id,
-              ...payload,
-              created_by,
-              position,
-              submodule_id: submodule_id ? submodule_id: '',
-              record_id: recordResult?.id || null, // null é válido
-            },
-          ])
+          .insert([kanbanPayload])
           .select();
 
         if (error) throw error;
@@ -706,6 +728,7 @@ const handleDescriptionChange = (value) => {
 };
 
 
+
   
   const [enabled, setEnabled] = useState(()=>{
     const saved = localStorage.getItem(ENABLE_KEY);
@@ -715,6 +738,7 @@ const handleDescriptionChange = (value) => {
   
 
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
+  
 
 
  useEffect(() => {
@@ -808,6 +832,15 @@ const handleDescriptionChange = (value) => {
           ))}
         </div>
       </div>
+      
+      {!submodule_id && <ExtraFields
+      formData={formData}
+      setFormData={setFormData}
+      renderInput={renderInput}
+      onlyView={onlyView}
+      />}
+      
+      
 
     </div>
 

@@ -49,7 +49,7 @@ export default function FinancesDropdown({ onFiltersChange }) {
         onClick={() => setOpen((o) => !o)}
         className="px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 flex items-center gap-2 hover:bg-gray-50"
       >
-        <Filter className="w-4 h-4" /> Filtrar
+        <Filter className="w-4 h-4" />
       </button>
 
       {open && (

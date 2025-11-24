@@ -36,7 +36,6 @@ import RecordCreator from "./RecordCreator"
 import AlertsWithInvoiceModal from "./AlertsWithInvoiceModal";
 import Joyride from "react-joyride";
 import MonthYearNavigator from "./FinancesComponents/MonthYearNavigator";
-import TransactionAIChat from "./IA/Finances/TransactionAIChat";
 
 
 const MyFinancesPage = () => {
@@ -72,6 +71,7 @@ const MyFinancesPage = () => {
   const [date, setDate] = useState(new Date())
   const [originTransactions, setOriginTransactions] = useState([])
 
+  
 
   //Transações
   //fetch principal
@@ -118,6 +118,7 @@ const MyFinancesPage = () => {
       console.error("Erro ao buscar transações:", err);
     }
   };
+  
   //manda para transations e calcula todas
   
 const computeStatsAndCharts = (dataList) => {
@@ -252,7 +253,6 @@ const computeStatsAndCharts = (dataList) => {
     { title: "Saldo Atual", value: `R$ ${formatBR(saldoAtual)}`, change: "+0%", icon: Wallet, color: "from-green-500 to-emerald-600", cardKey: "entrada" },
     { title: "Entradas do Mês", value: `R$ ${formatBR(entradasMes)}`, change: "+0%", icon: ArrowUpCircle, color: "from-blue-500 to-blue-600", cardKey: "entrada" },
     { title: "Despesas do Mês", value: `R$ ${formatBR(saidasMes)}`, change: "-0%", icon: ArrowDownCircle, color: "from-red-500 to-red-600", cardKey: "saida" },
-    { title: "Meta de Economia", value: `R$ ${formatBR(metaEconomia)}`, change: `${Math.floor((saldoAtual / metaEconomia) * 100)}% atingido`, icon: PiggyBank, color: "from-purple-500 to-indigo-600", cardKey: "entrada" },
   ]);
 
   const months = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
@@ -451,20 +451,6 @@ const fetchFields = async () => {
   const [runTutorial, setRunTutorial] = useState(true);
   // Recebe o form completo do resultFormsConfigured
 
-    const extractAllSubfields = (form) => {
-      if (!form?.fields) return [];
-
-      // Mapeia todos os subfields de todos os fields do form
-      const allSubfields = form.fields.flatMap((f) =>
-        f.subfields?.map((sf) => ({
-          ...sf,
-          parent_field_name: f.name, // opcional, pra referência
-          parent_field_id: f.id,
-        })) || []
-      );
-
-      return allSubfields;
-    };
     const steps = [
       {
         target: ".btn_new_transaction",
@@ -489,6 +475,9 @@ const fetchFields = async () => {
       </div>
     );
   }
+  
+
+  
 
   return (
     <div className="space-y-6 p-6" key={refreshKey}>
@@ -532,7 +521,7 @@ const fetchFields = async () => {
         <MonthYearNavigator onChange={handleDateChange} />
       </div>
      {/* Estatísticas */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 lg:gap-4">
         {stats.map((stat, index) => (
           <motion.div
             key={index}

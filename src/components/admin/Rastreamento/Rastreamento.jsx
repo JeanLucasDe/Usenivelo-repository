@@ -186,7 +186,7 @@ const handleSelectSubmodule = (sub) => {
   const company = creator.company;
 
   return (
-   <div className="bg-gray-100 dark:bg-gray-900 shadow-lg rounded-xl p-6 flex flex-col md:flex-row gap-6 border border-gray-200 dark:border-gray-700 font-sans transition-all ">
+   <div className="bg-gray-100 border-l-4 border-primary dark:bg-gray-900 shadow-lg rounded-xl p-6 flex flex-col md:flex-row gap-6  dark:border-gray-700 font-sans transition-all ">
   
   {/* Logo */}
   <div className="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">

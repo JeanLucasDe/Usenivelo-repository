@@ -86,18 +86,10 @@ const CardDetailFinances = ({
     }
 
     // Filtro de status (usando parcelas)
-    if (f.column === "status") {
+   if (f.column === "status") {
       if (!f.value) return;
       const desired = String(f.value).toLowerCase();
-      filtered = filtered.filter(item => {
-        const parcelas = Array.isArray(item.parcelas_detalhes) ? item.parcelas_detalhes : [];
-        if (parcelas.length === 0) return false;
-        const last = parcelas[parcelas.length - 1];
-        if (desired === "pago") return last.status === "pago";
-        if (desired === "pendente") return last.status !== "pago";
-        return true;
-      });
-      return;
+      filtered = filtered.filter(item => String(item.status).toLowerCase() === desired);
     }
 
     // Filtros gerais (categoria, descricao, tipo, etc.)
@@ -194,34 +186,7 @@ const CardDetailFinances = ({
           </button>
         </div>
 
-        {/* Filters bar */}
-        <div className="flex gap-2 mb-4">
-          <FinancesDropdown
-            filters={activeFilters}
-            onFiltersChange={novosFiltros => {
-              setActiveFilters(Array.isArray(novosFiltros) ? novosFiltros.filter(Boolean) : []);
-            }}
-          />
-          {activeFilters.map(f => (
-            <div
-              key={f.column}
-              className="bg-gray-200 text-sm px-2 py-1 rounded-md flex items-center gap-2"
-            >
-              <span className="font-medium">{f.column}</span>
-              <span className="text-xs text-gray-700">
-                {f.operator === "between"
-                  ? `${f.start || f?.value?.start || "..."} → ${f.end || f?.value?.end || "..."}`
-                  : String(f.value ?? "")}
-              </span>
-              <button
-                className="ml-1 text-gray-600 hover:text-red-500"
-                onClick={() => setActiveFilters(activeFilters.filter(p => p.column !== f.column))}
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          ))}
-        </div>
+        
 
         {/* Gráficos */}
         <ChartsSection
@@ -232,8 +197,38 @@ const CardDetailFinances = ({
 
         {/* Lista detalhada */}
         <div className="bg-gray-50 rounded-xl p-4 shadow-sm">
-          <h4 className="font-semibold mb-2">Transações</h4>
-
+ <div className="flex  items-center mb-3 ">
+            <h4 className="font-semibold mb-2 mr-2">Transações</h4>
+            {/* Filters bar */}
+            <div className="flex gap-2 mb-4">
+              <FinancesDropdown
+                  filters={activeFilters}
+                  onFiltersChange={novosFiltros => {
+                    setActiveFilters(Array.isArray(novosFiltros) ? novosFiltros.filter(Boolean) : []);
+                  }}
+                />
+              {activeFilters.map(f => (
+                <div
+                  key={f.column}
+                  className="bg-gray-200 text-sm px-2 py-1 rounded-md flex items-center gap-2"
+                >
+                  <span className="font-medium">{f.column}</span>
+                  <span className="text-xs text-gray-700">
+                    {f.operator === "between"
+                      ? `${f.start || f?.value?.start || "..."} → ${f.end || f?.value?.end || "..."}`
+                      : String(f.value ?? "")}
+                  </span>
+                  <button
+                    className="ml-1 text-gray-600 hover:text-red-500"
+                    onClick={() => setActiveFilters(activeFilters.filter(p => p.column !== f.column))}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            
+          </div>
           {/* Mobile */}
           <div className="flex flex-col gap-3 lg:hidden">
             {loading ? (
@@ -264,7 +259,6 @@ const CardDetailFinances = ({
               ))
             )}
           </div>
-
           {/* Desktop */}
           <div className="hidden lg:block overflow-x-auto">
             <table className="w-full text-sm text-left">

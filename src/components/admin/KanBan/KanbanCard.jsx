@@ -29,7 +29,6 @@ export default function KanbanCard({
   const creatorCard = usuarios.find((user) => user.id === card.created_by);
   const CompanieCreator = companies.find((c) => c.id === creatorCard?.company_id);
   const avatar = CompanieCreator?.logo;
-
   const cardRef = useRef(null);
 
   // Fechar menu ao clicar fora
@@ -63,7 +62,7 @@ export default function KanbanCard({
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           className="group relative p-3 rounded-lg border border-gray-300 bg-white shadow-md hover:shadow-md 
-            transition cursor-pointer select-none flex flex-col justify-between space-y-2 ml-2 mr-2 border border-gray-200"
+            transition cursor-pointer select-none flex flex-col justify-between space-y-2 ml-2 mr-2 border border-gray-200 mb-4"
           onClick={() =>
             setOpenMenuCardId((prev) => (prev === card.id ? null : card.id))
           }
@@ -105,20 +104,25 @@ export default function KanbanCard({
                 )}
 
                 {canEdit && (
-                  <button
-                    className="text-left w-full px-3 py-2 hover:bg-gray-100"
-                    onClick={() => {
-                      const sub = submodules.find((i) => i.id === card.submodule_id);
-                      selectSubmoduleButton(sub, step.id);
-                      setRecord({ data: card.data, ...card });
-                      setCanEdit(true);
-                      setOpenMenuCardId(null);
-                      setOnlyView(false);
-                    }}
-                  >
-                    Editar
-                  </button>
-                )}
+                <button
+                  className="text-left w-full px-3 py-2 hover:bg-gray-100"
+                  onClick={() => {
+                    // Procura o submodule, se não existir cria um "placeholder"
+                    const sub = submodules.find((i) => i.id === card.submodule_id) || { id: null, name: "Novo Submódulo" };
+
+                    // Chama a função passando o submodule encontrado ou placeholder
+                    selectSubmoduleButton(sub, step.id);
+                    // Atualiza o record e estado de edição
+                    setRecord({ data: card.data, ...card });
+                    setCanEdit(true);
+                    setOpenMenuCardId(null);
+                    setOnlyView(false);
+                  }}
+                >
+                  Editar
+                </button>
+              )}
+
 
                 {canDelete && (
                   <button

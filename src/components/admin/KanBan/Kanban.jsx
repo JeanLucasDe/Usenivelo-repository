@@ -546,7 +546,7 @@ const camposDoCard = Array.from(camposSet);
       setOpenCreateStepKanban(true)
     }}
     >
-      <PlusCircle className="mr-2"/> Novo
+      <PlusCircle className="mr-2"/> Etapa
     </Button>
   </div>
   {/* Botões do proprietário */}
@@ -597,7 +597,7 @@ const camposDoCard = Array.from(camposSet);
 
         {/* KANBAN */}
         <DragDropContext onDragEnd={onDragEnd}>
-          <div className={`mx-0 sm:mx-0 md:mx-3 flex gap-4 overflow-x-auto min-h-[100vh] `}>
+          <div className={`mx-0 sm:mx-0 md:mx-3 flex gap-4 overflow-x-auto min-h-[100vh] sm:mx-6 md:ml-0`}>
             {columnsData.columnOrder.map(columnId => {
             const column = columnsData.columns[columnId];
             const step = steps.find(s => s.id === column.id);
@@ -636,13 +636,13 @@ const camposDoCard = Array.from(camposSet);
             const color = column.color
 
             return (
-              <Droppable droppableId={column.id} key={column.id} isDropDisabled={!canMoveStep}>
+              <Droppable droppableId={column.id} key={column.id} isDropDisabled={!canMoveStep} >
                 {provided => (
                   <div ref={provided.innerRef} {...provided.droppableProps} className={`flex-shrink-0 
-                   rounded-md  w-72 space-y-2 pb-5`}
+                   rounded-md w-72 sm:w-72 md:w-80  pb-5`}
                    style={{ backgroundColor: `${color}60` }}
                    >
-                    <div className={`flex justify-between items-center mb-2  p-5 shadow-md border border-gray-300 rounded-sm z-20`}
+                    <div className={`flex justify-between items-center   p-5 shadow-md border border-gray-300 rounded-sm z-20`}
                     style={{ backgroundColor: `${color}` }}
                     >
                      <div className="flex items-center gap-2">
@@ -688,32 +688,6 @@ const camposDoCard = Array.from(camposSet);
                                 </div>
                               ))}
                           </div>
-                         
-                            {/**Botão de Novo Card */}
-                           <SplitButton
-                              mainLabel="Criar"
-                              onMainClick={() =>  {
-                                selectSubmodule('main', step.id)
-                                setRecord([]);
-                                setOnlyView(false);
-                                if(isOwner) setCanEdit(true)
-                              }}
-                              options={usuarioComSubmodules?.submodules?.map((sub) => ({
-                                label: sub.name,
-                                submodule: sub,
-                              }))}
-                              onSelect={({ submodule }) => {
-                                // 🔁 exatamente o mesmo comportamento do MoreVertical
-                                setCanEdit(canEdit)
-                                setOpenSubmoduleDropdown(null);
-                                setCurrentStep(step);
-                                setFormData(prev => ({ ...prev, _submodule_id: submodule.submodule_id }));
-                                selectSubmodule(submodule, step.id);
-                                setRecord([]);
-                                setOnlyView(false);
-                              }}
-                            />
-
                         </div>
 
                         {openSubmoduleDropdown === step.id && (
@@ -742,6 +716,30 @@ const camposDoCard = Array.from(camposSet);
                       </div>
                         )}
                     </div>
+                    {/**Botão de Novo Card */}
+                    <SplitButton
+                      mainLabel="Novo Card"
+                      onMainClick={() =>  {
+                        selectSubmodule('main', step.id)
+                        setRecord([]);
+                        setOnlyView(false);
+                        if(isOwner) setCanEdit(true)
+                      }}
+                      options={usuarioComSubmodules?.submodules?.map((sub) => ({
+                        label: sub.name,
+                        submodule: sub,
+                      }))}
+                      onSelect={({ submodule }) => {
+                        // 🔁 exatamente o mesmo comportamento do MoreVertical
+                        setCanEdit(canEdit)
+                        setOpenSubmoduleDropdown(null);
+                        setCurrentStep(step);
+                        setFormData(prev => ({ ...prev, _submodule_id: submodule.submodule_id }));
+                        selectSubmodule(submodule, step.id);
+                        setRecord([]);
+                        setOnlyView(false);
+                      }}
+                    />
 
                     {column.cardIds
   .filter((cardId) => {

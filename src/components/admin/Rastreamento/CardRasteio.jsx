@@ -9,6 +9,28 @@ export default function CardRastreio({ card, etapa, user, onAddComment }) {
   const title = card.data?.title;
   const comments = card.data?.comments || [];
 
+  function formatDateTimeShort(input, tzHours = -3) {
+  const d = (input instanceof Date) ? input : new Date(input);
+  const ms = d.getTime();
+  if (isNaN(ms)) return "";
+
+  // Ajusta para o timezone desejado
+  const target = new Date(ms + tzHours * 3600 * 1000);
+
+  const day = String(target.getUTCDate()).padStart(2, "0");
+  const month = String(target.getUTCMonth() + 1).padStart(2, "0");
+  const year = String(target.getUTCFullYear())
+
+  const hours = String(target.getUTCHours()).padStart(2, "0");
+  const minutes = String(target.getUTCMinutes()).padStart(2, "0");
+
+  return `${day}/${month}/${year} - ${hours}:${minutes}`;
+}
+
+
+
+
+
   // Formatador de labels bonitinhos
   const formatLabel = (text) => {
     return text
@@ -25,6 +47,7 @@ export default function CardRastreio({ card, etapa, user, onAddComment }) {
           <h2 className="font-semibold text-lg text-foreground">
             {title || "Sem título"}
           </h2>
+          <p className="text-xs text-muted-foreground mt--.5">Criado: {formatDateTimeShort(card.created_at,-3)}</p>
           <p className="text-xs text-muted-foreground mt-0.5">
             ID: {card.id}
           </p>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/customSupabaseClient";
 import { useToast } from "@/components/ui/use-toast";
-import { X } from "lucide-react";
+import { Calculator, CalculatorIcon, X } from "lucide-react";
 import {
   Select,
   SelectItem,
@@ -10,11 +10,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import CalculatorModal from "./FinancesComponents/CalculatorModal";
 
 const TransactionModal = ({ isOpen, onClose, fetchTransactions, form_data,fetchTransactionsOrigin }) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [parcelasDetalhadas, setParcelasDetalhadas] = useState([]);
+  const [calculatorOpen, setCalculatorOpen] = useState(false);
+  const [calcTarget, setCalcTarget] = useState(""); // "valor" ou "parcelas"
+  
+
   const [form, setForm] = useState({
     name: "",
     descricao: "",
@@ -27,6 +32,12 @@ const TransactionModal = ({ isOpen, onClose, fetchTransactions, form_data,fetchT
     fixa: false,
   });
 
+  const handleCalculatorResult = (res) => {
+    setForm((prev) => ({
+      ...prev,
+      [calcTarget]: Number(res).toFixed(2)
+    }));
+  };
   // 🔄 Atualiza o form caso receba dados externos
   useEffect(() => {
     if (form_data) {
@@ -162,6 +173,7 @@ const TransactionModal = ({ isOpen, onClose, fetchTransactions, form_data,fetchT
         fixa: isFixa,
         parcelas_detalhes: parcelasGeradas,
         created_at: novaTransacao.created_at || new Date().toISOString(),
+        status:novaTransacao.status
       };
 
       let data, error;
@@ -202,17 +214,37 @@ const TransactionModal = ({ isOpen, onClose, fetchTransactions, form_data,fetchT
       setLoading(false);
     }
   };
+  useEffect(() => {
+  if (isOpen) {
+    // Bloqueia scroll do body
+    document.body.style.overflow = "hidden";
+  } else {
+    // Restaura scroll do body
+    document.body.style.overflow = "";
+  }
+
+  // Cleanup quando o componente desmonta
+  return () => {
+    document.body.style.overflow = "";
+  };
+}, [isOpen]);
 
   if (!isOpen) return null;
 
   const valor = Number(form.valor) || 0;
   const parcelas = Number(form.parcelas) || 1;
   const total = (valor * parcelas).toFixed(2);
+  const handleBackdropClick = (e) => {
+  if (e.target === e.currentTarget) {
+    onClose();
+  }
+};
+
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
-      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 px-1"
+      onMouseDown={handleBackdropClick}
     >
       <div
         className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-3xl overflow-y-auto max-h-[90vh]"
@@ -244,13 +276,13 @@ const TransactionModal = ({ isOpen, onClose, fetchTransactions, form_data,fetchT
             </div>
 
             <div>
-              <Label>Descrição</Label>
+              <Label>Categoria</Label>
               <input
                 type="text"
-                name="descricao"
-                value={form.descricao}
+                name="categoria"
+                value={form.categoria}
                 onChange={handleChange}
-                placeholder="Descrição detalhada"
+                placeholder="Ex: Alimentação, Transporte..."
                 className="w-full border border-gray-300 rounded-lg p-2"
               />
             </div>
@@ -298,31 +330,51 @@ const TransactionModal = ({ isOpen, onClose, fetchTransactions, form_data,fetchT
             </div>
           </div>
 
-          {/* Categoria */}
-          <div>
-            <Label>Categoria</Label>
-            <input
-              type="text"
-              name="categoria"
-              value={form.categoria}
-              onChange={handleChange}
-              placeholder="Ex: Alimentação, Transporte..."
-              className="w-full border border-gray-300 rounded-lg p-2"
-            />
-          </div>
-
-          {/* Valor e Parcelas */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Valor</Label>
-              <input
-                type="number"
-                name="valor"
-                value={form.valor}
+          {/* Descrição */}
+           <div>
+              <Label>Descrição</Label>
+              <textarea
+                type="text"
+                name="descricao"
+                value={form.descricao}
                 onChange={handleChange}
+                placeholder="Descrição detalhada"
                 className="w-full border border-gray-300 rounded-lg p-2"
               />
             </div>
+          
+          {/* Valor e Parcelas */}
+          <div className="grid grid-cols-2 gap-4">
+           <CalculatorModal
+              open={calculatorOpen}
+              onClose={() => setCalculatorOpen(false)}
+              onConfirm={handleCalculatorResult} // <- aqui recebe do filho
+            />
+
+            <div>
+              <div className="flex items-center mb-2">
+                <Label>Valor</Label>
+                <CalculatorIcon
+                  type="button"
+                  className="cursor-pointer ml-3 w-5 h-5"
+                  onClick={() => {
+                    setCalcTarget("valor");
+                    setCalculatorOpen(true);
+                  }}
+                  />
+              </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      name="valor"
+                      value={form.valor}
+                      onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-lg p-2"
+                    />
+                   
+                  </div>
+                </div>
+
 
             <div>
               <Label>Parcelas</Label>
@@ -332,21 +384,40 @@ const TransactionModal = ({ isOpen, onClose, fetchTransactions, form_data,fetchT
                 value={form.parcelas}
                 disabled={form.fixa}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-2"
+                className="w-full border border-gray-300 rounded-lg p-2 mt-1"
               />
             </div>
           </div>
 
           {/* Data */}
-          <div>
-            <Label>Data</Label>
-            <input
-              type="date"
-              name="data"
-              value={form.data}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2"
-            />
+          <div className="flex justify-between space-x-3">
+            <div className="w-[50%]">
+              <Label>Data</Label>
+              <input
+                type="date"
+                name="data"
+                value={form.data}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg p-2"
+              />
+            </div>
+            <div className="w-[50%]">
+              <Label>Status</Label>
+              <Select
+                value={form.status}
+                onValueChange={(value) =>
+                  handleChange({ target: { name: "status", value } })
+                }
+              >
+                <SelectTrigger className="py-5 border-gray-300">
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent >
+                  <SelectItem value="pago" className="cursor-pointer">Pago</SelectItem>
+                  <SelectItem value="pendente" className="cursor-pointer">Pendente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Checkbox Fixa */}
