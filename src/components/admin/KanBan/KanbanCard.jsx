@@ -76,7 +76,7 @@ export default function KanbanCard({
                 <img
                   src={avatar}
                   className="w-10 h-10 border border-gray-300 rounded-full object-cover 
-                             transition-transform hover:scale-[1.05]"
+                             transition-transform hover:scale-[1.05] ring-2 ring-black"
                 />
               ) : (
                 <div className="w-6 h-6 border border-gray-200 rounded-full">
@@ -173,7 +173,9 @@ export default function KanbanCard({
             {/* Rodapé */}
             <div className="flex items-center pt-0.5 border-t space-x-1 mt-0.5">
               <div className="flex items-center gap-2 mt-2 text-xs text-gray-600">
-                <div className="flex items-center gap-1 text-xs text-gray-600 transition-transform hover:scale-[1.2]">
+                <div className="px-2 py-[2px] text-xs rounded-full 
+                                bg-blue-100 text-blue-700
+                                transition-transform hover:scale-[1.2]">
                   💬 {card.data?.comments?.length || 0}
                 </div>
                 <div className="flex text-xs text-gray-600 transition-transform hover:scale-[1.2]">
