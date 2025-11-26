@@ -62,7 +62,7 @@ export default function KanbanCard({
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           className="group relative p-3 rounded-lg border border-gray-300 bg-white 
-           shadow-sm hover:shadow-lg hover:scale-[1.02] 
+           shadow-sm hover:shadow-lg hover:scale-[1.001] 
            transition-transform cursor-pointer select-none 
            flex flex-col justify-between space-y-2 ml-2 mr-2 mb-4"
           onClick={() =>

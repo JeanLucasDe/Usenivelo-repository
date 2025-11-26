@@ -24,7 +24,10 @@ export function SplitButton({ mainLabel, onMainClick, options, onSelect }) {
       onClick={onMainClick}
       className={`w-full py-2 rounded-sm
                   bg-white
-                  text-gray-900 font-semibold
+                  text-gray-900
+                  font-[Verdana]
+                  text-sm
+                  font-semibold
                   border border-gray-200
                   shadow-[0_4px_14px_rgba(0,0,0,0.20)]
                   hover:shadow-[0_6px_20px_rgba(0,0,0,0.25)]
